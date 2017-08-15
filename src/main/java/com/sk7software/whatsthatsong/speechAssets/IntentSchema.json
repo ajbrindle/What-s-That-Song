@@ -1,7 +1,7 @@
 {
   "intents": [
     {
-      "intent": "WhatsThatSongIntent"
+        "intent": "WhatsThatSongIntent"
     },
     {
         "intent": "PlayerControlSkipIntent"
@@ -26,6 +26,31 @@
     },
     {
         "intent": "AlbumPlayIntent"
+    },
+    {
+        "intent": "DeviceListIntent"
+    },
+    {
+        "intent": "DevicePlayIntent",
+        "slots": [
+            {
+                "name": "deviceNumber",
+                "type": "AMAZON.NUMBER"
+            }
+        ]
+    },
+    {
+        "intent": "DeviceVolumeIntent",
+        "slots": [
+            {
+                "name": "volumeAmount",
+                "type": "AMAZON.NUMBER"
+            },
+            {
+                "name": "volumeDirection",
+                "type": "UpDown"
+            }
+        ]
     },
     {
       "intent": "AMAZON.HelpIntent"

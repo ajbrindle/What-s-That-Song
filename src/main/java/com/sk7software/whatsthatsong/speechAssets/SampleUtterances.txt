@@ -7,9 +7,22 @@ PlayerControlPauseIntent Pause it
 PlayerControlResumeIntent Play it
 PlayerControlResumeIntent Resume it
 PlayerControlSkipIntent Skip it
+PlayerControlSkipIntent Don't like it skip it
 TrackExplicitIntent Is it explicit
 TrackTimeIntent How long is it
 TrackTimeIntent Where is it up to
+AlbumNameIntent What album is it from
 AlbumNameIntent What album is it on
+AlbumNameIntent What's the album
 AlbumPlayIntent Play the album
 AlbumPlayIntent Play the whole album
+DeviceListIntent List devices
+DeviceListIntent List my devices
+DeviceListIntent List my available devices
+DeviceListIntent Device list
+DeviceListIntent What can I play it on
+DevicePlayIntent Play it on device {deviceNumber}
+DeviceVolumeIntent Turn the volume {volumeDirection} by {volumeAmount}
+DeviceVolumeIntent Turn the volume {volumeDirection} {volumeAmount}
+DeviceVolumeIntent Volume {volumeDirection} by {volumeAmount}
+DeviceVolumeIntent Volume {volumeDirection} {volumeAmount}

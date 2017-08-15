@@ -7,6 +7,7 @@
 package com.sk7software.whatsthatsong;
 
 import com.amazon.speech.slu.Intent;
+import com.amazon.speech.slu.Slot;
 import com.amazon.speech.speechlet.IntentRequest;
 import com.amazon.speech.speechlet.LaunchRequest;
 import com.amazon.speech.speechlet.Session;
@@ -18,6 +19,7 @@ import com.amazon.speech.speechlet.SpeechletResponse;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.Reprompt;
 import com.amazon.speech.ui.SimpleCard;
+import com.amazonaws.util.json.JSONArray;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,8 +31,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.amazonaws.util.json.JSONObject;
 import com.sk7software.whatsthatsong.model.Album;
+import com.sk7software.whatsthatsong.model.Device;
 import com.sk7software.whatsthatsong.model.Track;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,8 +56,13 @@ public class WhatsThatSongSpeechlet implements Speechlet {
     private static final int RESPONSE_RETRY = 202;
     private static final int RESPONSE_ERROR = 0;
     
+    private static final String SLOT_DEVICE_NUMBER = "deviceNumber";
+    private static final String SLOT_VOLUME_AMOUNT = "volumeAmount";
+    private static final String SLOT_VOLUME_DIRECTION = "volumeDirection";
+    
     private String accessToken;
     private Track track;
+    private List<Device> devices = new ArrayList<>();
 
     @Override
     public void onSessionStarted(final SessionStartedRequest request, final Session session)
@@ -103,6 +113,12 @@ public class WhatsThatSongSpeechlet implements Speechlet {
                 return playerControl(ACTION_ALBUM_PLAY);
             case "TrackTimeIntent":
                 return getTrackTimeResponse();
+            case "DeviceListIntent":
+                return getDevicesResponse();
+            case "DevicePlayIntent":
+                return getDevicePlayResponse(intent);
+            case "DeviceVolumeIntent":
+                return getDeviceVolumeResponse(intent);
             case "AMAZON.HelpIntent":
                 return getHelpResponse();
             case "AMAZON.StopIntent":
@@ -154,6 +170,191 @@ public class WhatsThatSongSpeechlet implements Speechlet {
         Reprompt reprompt = getStandardReprompt();
 
         return SpeechletResponse.newAskResponse(speech, reprompt, card);
+    }
+
+    private SpeechletResponse getDevicesResponse() {
+        StringBuilder speechText = new StringBuilder();
+
+        // Get currently playing track
+        try {
+            String devicesStr = getJsonResponse("https://api.spotify.com/v1/me/player/devices");
+            log.info(devicesStr);
+            devices = Device.createFromJSON(new JSONObject(devicesStr));
+            int index = 1;
+            
+            if (devices.isEmpty()) {
+                speechText.append("Sorry, I couldn't find any devices");
+            } else {
+                for (int i=0; i<devices.size(); i++) {
+                    Device d = devices.get(i);
+
+                    if (!d.isRestricted()) {
+                        d.setIndex(index++);
+                        speechText.append("Device ");
+                        speechText.append(d.getIndex());
+                        speechText.append(" is ");
+                        speechText.append(d.getName());
+                        speechText.append(" ");
+                        speechText.append(d.getType());
+                        speechText.append(". ");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            speechText.append("Sorry, there was a problem fetching the devices");
+            log.error(e.getMessage());
+        }
+
+        // Create the Simple card content.
+        SimpleCard card = new SimpleCard();
+        card.setTitle("What's That Song");
+        card.setContent(speechText.toString());
+
+        // Create the plain text output.
+        PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
+        speech.setText(speechText.toString());
+
+        // Create reprompt
+        Reprompt reprompt = getStandardReprompt();
+
+        return SpeechletResponse.newAskResponse(speech, reprompt, card);
+    }
+
+    
+    private SpeechletResponse getDevicePlayResponse(Intent intent) {
+        StringBuilder speechText = new StringBuilder();
+        int index = getIntSlotValue(intent, SLOT_DEVICE_NUMBER);
+        Device device = new Device();
+        
+        log.info("Requested device: " + index);
+        
+        if (index <= 0) {
+            speechText.append("Sorry, I couldn't recognise that device number");
+        } else {
+            if (devices.isEmpty()) {
+                speechText.append("Please ask to list the devices first.");
+            } else {
+                boolean found = false;
+                
+                for (Device d : devices) {
+                    if (d.getIndex() == index) {
+                        device = d;
+                        found = true;
+                        break;
+                    }
+                }
+                
+                if (!found) {
+                    speechText.append("Sorry, I couldn't find device number " + index);
+                } else {
+                    Map<String, Object> param = new HashMap<>();
+                    param.put("device_ids", new String[] {device.getId()});
+                    int responseCode = sendPlayerCommand("https://api.spotify.com/v1/me/player", "PUT", param);
+
+                    if (responseCode == RESPONSE_RETRY) {
+                        speechText.append("Sorry, that didn't work.  Please try again.");
+                    } else if (responseCode != RESPONSE_DONE) {
+                        speechText.append("Sorry, I'm unable to complete that action.");
+                    } else {
+                        setActiveDevice(device);
+                        speechText.append("Playing on " + device.getName());
+                    }
+                }
+            }
+        }
+        
+        // Create the Simple card content.
+        SimpleCard card = new SimpleCard();
+        card.setTitle("What's That Song");
+        card.setContent(speechText.toString());
+
+        // Create the plain text output.
+        PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
+        speech.setText(speechText.toString());
+
+        // Create reprompt
+        Reprompt reprompt = getStandardReprompt();
+
+        return SpeechletResponse.newAskResponse(speech, reprompt, card);
+    }
+
+        private SpeechletResponse getDeviceVolumeResponse(Intent intent) {
+        StringBuilder speechText = new StringBuilder();
+        String direction = getStringSlotValue(intent, SLOT_VOLUME_DIRECTION);
+        int amount = getIntSlotValue(intent, SLOT_VOLUME_AMOUNT);
+        
+        // Find the current active device
+        Device active = getActiveDevice();
+        
+        if (active != null) {
+            StringBuilder volumeURL = new StringBuilder();
+            int volume = active.getVolumePercent();
+            
+            if ("up".equals(direction)) {
+                volume += amount;
+            } else {
+                volume -= amount;
+            }
+            
+            log.info("Changing volume from " + active.getVolumePercent() + " to " + volume);
+            
+            volumeURL.append("https://api.spotify.com/v1/me/player/volume?volume_percent=");
+            volumeURL.append(String.valueOf(volume));
+            
+            int responseCode = sendPlayerCommand(volumeURL.toString(), "PUT", null);
+            
+            if (responseCode == RESPONSE_RETRY) {
+                // Can retry twice, 5 seconds apart
+                for (int i=0; i<2; i++) {
+                    try {
+                        Thread.sleep(5000);
+                        responseCode = sendPlayerCommand(volumeURL.toString(), "PUT", null);
+                        if (responseCode != RESPONSE_RETRY) {
+                            break;
+                        } 
+                    } catch (InterruptedException e) {}
+                }
+            } 
+        
+            if (responseCode != RESPONSE_DONE) {
+                speechText.append("Sorry, I'm unable to complete that action.");
+            } else {
+                active.setVolumePercent(volume);
+                speechText.append("Volume ");
+                speechText.append(direction);
+            }
+        }
+        
+        // Create the plain text output.
+        PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
+        speech.setText(speechText.toString());
+
+        // Create reprompt
+        Reprompt reprompt = getStandardReprompt();
+
+        return SpeechletResponse.newAskResponse(speech, reprompt);
+    }
+
+    private int getIntSlotValue(Intent intent, String slotName) {
+        try {
+            Slot slot = intent.getSlot(slotName);
+            if (slot != null && slot.getValue() != null) {
+                return Integer.parseInt(slot.getValue());
+            } 
+        } catch (NumberFormatException e) {
+            log.error("Error getting int slot " + slotName + ": " + e.getMessage());
+        }
+        
+        return -1;
+    }
+
+    private String getStringSlotValue(Intent intent, String slotName) {
+        Slot slot = intent.getSlot(slotName);
+        if (slot != null && slot.getValue() != null) {
+            return slot.getValue();
+        } 
+
+        return "";
     }
 
     /**
@@ -274,7 +475,7 @@ public class WhatsThatSongSpeechlet implements Speechlet {
         try {
             String spotifyURL;
             String method;
-            Map<String, String> postParams = new HashMap<>();
+            Map<String, Object> postParams = new HashMap<>();
             
             switch (action) {
                 case ACTION_SKIP:
@@ -426,7 +627,7 @@ public class WhatsThatSongSpeechlet implements Speechlet {
     }
     
     
-    int sendPlayerCommand(String requestURL, String method, Map<String, String>postParams) {
+    int sendPlayerCommand(String requestURL, String method, Map<String, Object>postParams) {
         URL url;
         HttpURLConnection con = null;
         
@@ -441,7 +642,7 @@ public class WhatsThatSongSpeechlet implements Speechlet {
             con.setRequestProperty("Authorization",
                     "Bearer " + accessToken);
             
-            if (postParams.size() > 0) {
+            if (postParams != null && postParams.size() > 0) {
                 JSONObject postData = new JSONObject(postParams);        
                 con.setRequestProperty("Content-Type", "application/json");
                 con.setRequestProperty("Accept", "application/json");
@@ -469,5 +670,21 @@ public class WhatsThatSongSpeechlet implements Speechlet {
                 con.disconnect();
             }
         }
+    }
+    
+    private void setActiveDevice(Device active) {
+        for (Device d : devices) {
+            d.setActive(d.getId().equals(active.getId()));
+        }
+    }
+    
+    private Device getActiveDevice() {
+        for (Device d : devices) {
+            if (d.isActive()) {
+                return d;
+            }
+        }
+        
+        return null;
     }
 }
