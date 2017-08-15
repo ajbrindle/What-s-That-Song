@@ -1,0 +1,15 @@
+WhatsThatSongIntent What is this song
+WhatsThatSongIntent What's this song
+WhatsThatSongIntent What's playing
+WhatsThatSongIntent What's playing on Spotify
+PlayerControlRestartIntent Restart it
+PlayerControlPauseIntent Pause it
+PlayerControlResumeIntent Play it
+PlayerControlResumeIntent Resume it
+PlayerControlSkipIntent Skip it
+TrackExplicitIntent Is it explicit
+TrackTimeIntent How long is it
+TrackTimeIntent Where is it up to
+AlbumNameIntent What album is it on
+AlbumPlayIntent Play the album
+AlbumPlayIntent Play the whole album

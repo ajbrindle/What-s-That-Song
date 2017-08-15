@@ -1,0 +1,37 @@
+{
+  "intents": [
+    {
+      "intent": "WhatsThatSongIntent"
+    },
+    {
+        "intent": "PlayerControlSkipIntent"
+    },
+    {
+        "intent": "PlayerControlResumeIntent"
+    },
+    {
+        "intent": "PlayerControlPauseIntent"
+    },
+    {
+        "intent": "PlayerControlRestartIntent"
+    },
+    {
+        "intent": "TrackExplicitIntent"
+    },
+    {
+        "intent": "TrackTimeIntent"
+    },
+    {
+        "intent": "AlbumNameIntent"
+    },
+    {
+        "intent": "AlbumPlayIntent"
+    },
+    {
+      "intent": "AMAZON.HelpIntent"
+    },
+    {
+      "intent": "AMAZON.StopIntent"
+    }
+  ]
+}
