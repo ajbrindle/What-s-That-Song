@@ -16,12 +16,10 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by andre_000 on 24/07/2017.
+ * Created by Andrew on 24/07/2017.
  */
-
 public class Track {
     private TrackItem item;
-
     @JsonProperty("progress_ms")
     private int progress;
     
@@ -116,17 +114,86 @@ public class Track {
         StringBuilder durationString = new StringBuilder();
         if (hours > 0) {
             durationString.append(hours);
-            durationString.append(" hours ");
+            durationString.append(" hour");
+            if (hours > 1) { durationString.append("s"); }
+            durationString.append(" ");
         }
         if (minutes > 0) {
             durationString.append(minutes);
-            durationString.append(" minutes ");
+            durationString.append(" minute");
+            if (minutes > 1) { durationString.append("s"); }
+            durationString.append(" ");
         }
         if (seconds > 0 || durationString.length() == 0) {
             durationString.append(seconds);
-            durationString.append(" seconds");
+            durationString.append(" second");
+            if (seconds != 1) { durationString.append("s"); }
         }
         
-        return durationString.toString();
+        return durationString.toString().trim();
     }    
+    
+    public class TrackItem {
+
+        private String name;
+        private Artist[] artists;
+        private Album album;
+        private String id;
+        private boolean explicit;
+
+        @JsonProperty("duration_ms")
+        private int duration;
+
+        public TrackItem() {
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public Artist[] getArtists() {
+            return artists;
+        }
+
+        public void setArtists(Artist[] artists) {
+            this.artists = artists;
+        }
+
+        public Album getAlbum() {
+            return album;
+        }
+
+        public void setAlbum(Album album) {
+            this.album = album;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public boolean isExplicit() {
+            return explicit;
+        }
+
+        public void setExplicit(boolean explicit) {
+            this.explicit = explicit;
+        }
+
+        public int getDuration() {
+            return duration;
+        }
+
+        public void setDuration(int duration) {
+            this.duration = duration;
+        }
+    }
+
 }
