@@ -21,8 +21,17 @@ DeviceListIntent List my devices
 DeviceListIntent List my available devices
 DeviceListIntent Device list
 DeviceListIntent What can I play it on
+DeviceFetchIntent Fetch my devices
 DevicePlayIntent Play it on device {deviceNumber}
+DevicePlayByNameIntent Play it on {deviceName}
+DevicePlayByNameIntent Play it on my {deviceName}
+DevicePlayByNameIntent Play it on the {deviceName}
+DevicePlayByNameIntent Transfer it to {deviceName}
+DevicePlayByNameIntent Transfer it to the {deviceName}
+DevicePlayByNameIntent Transfer it to my {deviceName}
 DeviceVolumeIntent Turn the volume {volumeDirection} by {volumeAmount}
 DeviceVolumeIntent Turn the volume {volumeDirection} {volumeAmount}
 DeviceVolumeIntent Volume {volumeDirection} by {volumeAmount}
 DeviceVolumeIntent Volume {volumeDirection} {volumeAmount}
+DeviceMuteIntent Volume off
+DeviceMuteIntent Mute

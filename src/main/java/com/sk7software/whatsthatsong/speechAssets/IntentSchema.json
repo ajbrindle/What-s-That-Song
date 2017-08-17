@@ -31,11 +31,23 @@
         "intent": "DeviceListIntent"
     },
     {
+        "intent": "DeviceFetchIntent"
+    },
+    {
         "intent": "DevicePlayIntent",
         "slots": [
             {
                 "name": "deviceNumber",
                 "type": "AMAZON.NUMBER"
+            }
+        ]
+    },
+    {
+        "intent": "DevicePlayByNameIntent",
+        "slots": [
+            {
+                "name": "deviceName",
+                "type": "deviceNames"
             }
         ]
     },
@@ -51,6 +63,9 @@
                 "type": "UpDown"
             }
         ]
+    },
+    {
+        "intent": "DeviceMuteIntent"
     },
     {
       "intent": "AMAZON.HelpIntent"

@@ -57,6 +57,7 @@ public class WhatsThatSongSpeechlet implements Speechlet {
     private static final int RESPONSE_ERROR = 0;
     
     private static final String SLOT_DEVICE_NUMBER = "deviceNumber";
+    private static final String SLOT_DEVICE_NAME = "deviceName";
     private static final String SLOT_VOLUME_AMOUNT = "volumeAmount";
     private static final String SLOT_VOLUME_DIRECTION = "volumeDirection";
     
@@ -114,11 +115,17 @@ public class WhatsThatSongSpeechlet implements Speechlet {
             case "TrackTimeIntent":
                 return getTrackTimeResponse();
             case "DeviceListIntent":
-                return getDevicesResponse();
+                return getDevicesResponse(true);
+            case "DeviceFetchIntent":
+                return getDevicesResponse(false);
             case "DevicePlayIntent":
                 return getDevicePlayResponse(intent);
+            case "DevicePlayByNameIntent":
+                return getDevicePlayByNameResponse(intent);
             case "DeviceVolumeIntent":
                 return getDeviceVolumeResponse(intent);
+            case "DeviceMuteIntent":
+                return getDeviceMuteResponse();
             case "AMAZON.HelpIntent":
                 return getHelpResponse();
             case "AMAZON.StopIntent":
@@ -172,7 +179,7 @@ public class WhatsThatSongSpeechlet implements Speechlet {
         return SpeechletResponse.newAskResponse(speech, reprompt, card);
     }
 
-    private SpeechletResponse getDevicesResponse() {
+    private SpeechletResponse getDevicesResponse(boolean list) {
         StringBuilder speechText = new StringBuilder();
 
         // Get currently playing track
@@ -190,14 +197,20 @@ public class WhatsThatSongSpeechlet implements Speechlet {
 
                     if (!d.isRestricted()) {
                         d.setIndex(index++);
-                        speechText.append("Device ");
-                        speechText.append(d.getIndex());
-                        speechText.append(" is ");
-                        speechText.append(d.getName());
-                        speechText.append(" ");
-                        speechText.append(d.getType());
-                        speechText.append(". ");
+                        if (list) {
+                            speechText.append("Device ");
+                            speechText.append(d.getIndex());
+                            speechText.append(" is ");
+                            speechText.append(d.getName());
+                            speechText.append(" ");
+                            speechText.append(d.getType());
+                            speechText.append(". ");
+                        }
                     }
+                }
+                
+                if (!list && devices.size() > 0) {
+                    speechText.append("Device list fetched");
                 }
             }
         } catch (Exception e) {
@@ -278,7 +291,63 @@ public class WhatsThatSongSpeechlet implements Speechlet {
         return SpeechletResponse.newAskResponse(speech, reprompt, card);
     }
 
-        private SpeechletResponse getDeviceVolumeResponse(Intent intent) {
+    private SpeechletResponse getDevicePlayByNameResponse(Intent intent) {
+        StringBuilder speechText = new StringBuilder();
+        String spokenName = getStringSlotValue(intent, SLOT_DEVICE_NAME);
+        Device device = new Device();
+
+        log.info("Requested device: [" + spokenName + "]");
+
+        if (devices.isEmpty()) {
+            speechText.append("Please ask to list the devices first.");
+        } else {
+            int maxScore = 0;
+            String maxScoreId = "";
+
+            for (Device d : devices) {
+                int matchScore = d.calcNameMatchScore(spokenName);
+                
+                if (matchScore > maxScore) {
+                    maxScore = matchScore;
+                    maxScoreId = d.getId();
+                    device = d;
+                }
+            }
+
+            if (maxScore == 0) {
+                speechText.append("Sorry, I wasn't able to find a device that sounded like " + spokenName);
+            } else {
+                Map<String, Object> param = new HashMap<>();
+                param.put("device_ids", new String[]{maxScoreId});
+                int responseCode = sendPlayerCommand("https://api.spotify.com/v1/me/player", "PUT", param);
+
+                if (responseCode == RESPONSE_RETRY) {
+                    speechText.append("Sorry, that didn't work.  Please try again.");
+                } else if (responseCode != RESPONSE_DONE) {
+                    speechText.append("Sorry, I'm unable to complete that action.");
+                } else {
+                    setActiveDevice(device);
+                    speechText.append("Playing on " + device.getName());
+                }
+            }
+        }
+
+        // Create the Simple card content.
+        SimpleCard card = new SimpleCard();
+        card.setTitle("What's That Song");
+        card.setContent(speechText.toString());
+
+        // Create the plain text output.
+        PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
+        speech.setText(speechText.toString());
+
+        // Create reprompt
+        Reprompt reprompt = getStandardReprompt();
+
+        return SpeechletResponse.newAskResponse(speech, reprompt, card);
+    }
+
+    private SpeechletResponse getDeviceVolumeResponse(Intent intent) {
         StringBuilder speechText = new StringBuilder();
         String direction = getStringSlotValue(intent, SLOT_VOLUME_DIRECTION);
         int amount = getIntSlotValue(intent, SLOT_VOLUME_AMOUNT);
@@ -319,12 +388,51 @@ public class WhatsThatSongSpeechlet implements Speechlet {
             if (responseCode != RESPONSE_DONE) {
                 speechText.append("Sorry, I'm unable to complete that action.");
             } else {
+                
                 active.setVolumePercent(volume);
                 speechText.append("Volume ");
                 speechText.append(direction);
             }
         }
         
+        // Create the plain text output.
+        PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
+        speech.setText(speechText.toString());
+
+        // Create reprompt
+        Reprompt reprompt = getStandardReprompt();
+
+        return SpeechletResponse.newAskResponse(speech, reprompt);
+    }
+
+    private SpeechletResponse getDeviceMuteResponse() {
+        StringBuilder speechText = new StringBuilder();
+        String volumeURL = "https://api.spotify.com/v1/me/player/volume?volume_percent=0";
+
+        int responseCode = sendPlayerCommand(volumeURL, "PUT", null);
+
+        if (responseCode == RESPONSE_RETRY) {
+            // Can retry twice, 5 seconds apart
+            for (int i = 0; i < 2; i++) {
+                try {
+                    Thread.sleep(5000);
+                    responseCode = sendPlayerCommand(volumeURL.toString(), "PUT", null);
+                    if (responseCode != RESPONSE_RETRY) {
+                        break;
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+        }
+
+        if (responseCode != RESPONSE_DONE) {
+            speechText.append("Sorry, I'm unable to complete that action.");
+        } else {
+            Device active = getActiveDevice();
+            active.setVolumePercent(0);
+            speechText.append("Muted");
+        }
+
         // Create the plain text output.
         PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
         speech.setText(speechText.toString());
@@ -369,7 +477,8 @@ public class WhatsThatSongSpeechlet implements Speechlet {
         try {
             if (track != null) {
                 boolean isExplicit = track.isExplicit();
-                speechText.append("This track does ");
+                speechText.append(isExplicit ? "Yes" : "No");
+                speechText.append(", this track does ");
                 speechText.append(isExplicit ? "" : "not ");
                 speechText.append("contain explicit lyrics.");
             } else {

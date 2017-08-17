@@ -98,4 +98,42 @@ public class Device {
     public void setVolumePercent(int volumePercent) {
         this.volumePercent = volumePercent;
     }
+    
+    public int calcNameMatchScore(String spokenName) {
+        int score = 0;
+        String deviceName = name;
+        String deviceType = type;
+        deviceName = deviceName.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase();
+        deviceType = deviceType.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase();
+        spokenName = spokenName.replaceAll("[^A-Za-z0-9 ]", "").toLowerCase();
+        
+        // Remove all non-alphanumerics (leave spaces)
+        String[] deviceWords = deviceName.split(" ");
+        String[] spokenWords = spokenName.split(" ");
+        String[] typeWords = deviceType.split(" ");
+        
+        // Loop through words in spoken name and device name to find matches
+        for (String dw : deviceWords) {
+            for (String sw : spokenWords) {
+                if (dw.equals(sw)) {
+                    // 3 points for a match in the name
+                    score += 3;
+                } else if (dw.contains(sw)) {
+                    // 2 points for name containing word
+                    score += 2;
+                }
+            }
+        }
+        
+        for (String tw : typeWords) {
+            for (String sw : spokenWords) {
+                if (tw.contains(sw)) {
+                    // 1 point for a match in the type
+                    score++;
+                }
+            }            
+        }
+        
+        return score;
+    }
 }
