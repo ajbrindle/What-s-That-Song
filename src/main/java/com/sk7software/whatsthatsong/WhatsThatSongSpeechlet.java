@@ -156,7 +156,7 @@ public class WhatsThatSongSpeechlet implements Speechlet {
             track = Track.createFromJSON(new JSONObject(trackStr));
             speechText.append("This song is ");
             speechText.append(track.getName());
-            speechText.append(" by ");
+            speechText.append(", by ");
             speechText.append(track.getArtistName());
             
         } catch (Exception e) {
