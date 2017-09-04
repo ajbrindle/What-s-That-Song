@@ -13,6 +13,16 @@
   "item": {
     "album": {
       "album_type": "album",
+      "artists" : [ {
+        "external_urls" : {
+          "spotify" : "https://open.spotify.com/artist/0C0XlULifJtAgn6ZNCW2eu"
+        },
+        "href" : "https://api.spotify.com/v1/artists/0C0XlULifJtAgn6ZNCW2eu",
+        "id" : "0C0XlULifJtAgn6ZNCW2eu",
+        "name" : "The Killers",
+        "type" : "artist",
+        "uri" : "spotify:artist:0C0XlULifJtAgn6ZNCW2eu"
+      } ],
       "external_urls": {
         "spotify": "https://open.spotify.com/album/6TJmQnO44YE5BtTxH8pop1"
       },

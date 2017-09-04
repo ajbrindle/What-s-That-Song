@@ -9,11 +9,10 @@ package com.sk7software.whatsthatsong.model;
 import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
 import java.io.IOException;
-import java.io.InputStream;import java.io.InputStreamReader;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import java.io.InputStream;
+
+import org.junit.*;
+
 import static org.junit.Assert.*;
 
 /**
@@ -49,20 +48,39 @@ public class TrackTest {
     /**
      * Test of createFromJSON method, of class Track.
      */
-    @org.junit.Test
+    @Test
     public void testCreateFromJSON() throws Exception {
-        System.out.println("createFromJSON");
         JSONObject response = fetchJSON("nowplaying.json");
         Track result = Track.createFromJSON(response);
         assertEquals("Mr. Brightside", result.getName());
         assertEquals("The Killers", result.getArtistName());
         assertEquals("Hot Fuss", result.getAlbumName());
+        assertEquals("0eGsygTp906u18L0Oimnem", result.getId());
+        assertEquals("6TJmQnO44YE5BtTxH8pop1", result.getAlbumId());
+        assertEquals("spotify:album:6TJmQnO44YE5BtTxH8pop1", result.getAlbumUri());
+        assertEquals("This song is Mr. Brightside, by The Killers", result.getFullDescription());
+        assertEquals("Hot Fuss, by The Killers", result.getFullAlbumDescription());
+        assertFalse(result.isExplicit());
+        assertEquals(44272, result.getProgress());
+        assertEquals(10032000, result.getDuration());
+        assertNotNull(result.getAlbum());
+    }
+
+    @Test
+    public void testCreateFromItemJSON() throws Exception {
+        JSONObject response = fetchJSON("track.json");
+        Track result = Track.createFromItemJSON(response);
+        assertEquals("The Life of Riley", result.getName());
+        assertEquals("The Lightning Seeds", result.getArtistName());
+        assertEquals("Sense", result.getAlbumName());
+        assertFalse(result.isExplicit());
+        assertNotNull(result.getAlbum());
     }
 
     /**
      * Test of createFromJSON method, of class Track.
      */
-    @org.junit.Test (expected = JSONException.class)
+    @Test (expected = JSONException.class)
     public void testCreateFromInvalidJSON() throws Exception {
         System.out.println("createFromJSON");
         JSONObject response = fetchJSON("garbage.txt");

@@ -35,3 +35,5 @@ DeviceVolumeIntent Volume {volumeDirection} by {volumeAmount}
 DeviceVolumeIntent Volume {volumeDirection} {volumeAmount}
 DeviceMuteIntent Volume off
 DeviceMuteIntent Mute
+DeviceUnmuteIntent Volume on
+DeviceUnmuteIntent Unmute

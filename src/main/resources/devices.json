@@ -31,6 +31,15 @@
             "name": "MacBook",
             "type": "Computer",
             "volume_percent": 68
+        },
+        {
+            "id": "device5",
+            "is_active": false,
+            "is_restricted": true,
+            "name": "Not Listed",
+            "type": "Restricted",
+            "volume_percent": 10
         }
+
     ]
 }

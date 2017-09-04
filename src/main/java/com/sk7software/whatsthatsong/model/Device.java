@@ -6,15 +6,7 @@
 
 package com.sk7software.whatsthatsong.model;
 
-import com.amazonaws.util.json.JSONArray;
-import com.amazonaws.util.json.JSONException;
-import com.amazonaws.util.json.JSONObject;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.util.List;
 
 /**
  *
@@ -30,19 +22,9 @@ public class Device {
     private String type;
     @JsonProperty("volume_percent")
     private int volumePercent;
+    private int oldVolumePercent;
     private int index;
 
-    public static List<Device> createFromJSON(JSONObject response) throws IOException, JSONException {
-        
-        JSONArray deviceData = response.getJSONArray("devices");
-        
-        ObjectMapper mapper = new ObjectMapper()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        List<Device> devices = mapper.readValue(deviceData.toString(), new TypeReference<List<Device>>(){});
-
-        return devices;
-    }
-    
     public String getId() {
         return id;
     }
@@ -98,7 +80,27 @@ public class Device {
     public void setVolumePercent(int volumePercent) {
         this.volumePercent = volumePercent;
     }
-    
+
+    public int getOldVolumePercent() {
+        return oldVolumePercent;
+    }
+
+    public void setOldVolumePercent(int oldVolumePercent) {
+        this.oldVolumePercent = oldVolumePercent;
+    }
+
+    public String getDeviceDescription() {
+        StringBuilder s = new StringBuilder();
+        s.append("Device ");
+        s.append(index);
+        s.append(" is ");
+        s.append(name);
+        s.append(" ");
+        s.append(type);
+        s.append(". ");
+        return s.toString();
+    }
+
     public int calcNameMatchScore(String spokenName) {
         int score = 0;
         String deviceName = name;

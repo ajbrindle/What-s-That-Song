@@ -6,8 +6,8 @@
 
 package com.sk7software.whatsthatsong.model;
 
-import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,13 +25,25 @@ public class Track {
     
     public Track() {}
 
-    public static Track createFromJSON(JSONObject response) throws IOException, JSONException {
-        Track track = new Track();
+    public static Track createFromJSON(JSONObject response) throws IOException {
+        Track track;
 
         ObjectMapper mapper = new ObjectMapper()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         track = mapper.readValue(response.toString(), Track.class);
 
+        return track;
+    }
+
+    public static Track createFromItemJSON(JSONObject response) throws IOException {
+        TrackItem trackItem;
+
+        ObjectMapper mapper = new ObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        trackItem = mapper.readValue(response.toString(), TrackItem.class);
+
+        Track track = new Track();
+        track.setItem(trackItem);
         return track;
     }
 
@@ -47,7 +59,8 @@ public class Track {
         return item.getName();
     }
 
-    public Artist[] getArtists() {
+    // Don't expose artist array outside of object
+    private Artist[] getArtists() {
         return item.getArtists();
     }
 
@@ -79,13 +92,15 @@ public class Track {
         if (item.getArtists().length > 0) {
             return item.getArtists()[0].getName();
         } else {
-            throw new IllegalStateException("Artist not defined");
+            return "Unknown artist";
         }
     }
 
     public String getAlbumName() {
         return item.getAlbum().getName();
     }
+
+    public String getAlbumArtist() { return item.getAlbum().getArtistName(); }
 
     public String getAlbumUri() {
         return item.getAlbum().getUri();
@@ -94,7 +109,16 @@ public class Track {
     public String getAlbumId() {
         return item.getAlbum().getId();
     }
-    
+
+    public String getFullDescription() {
+        StringBuilder description = new StringBuilder();
+        description.append("This song is ");
+        description.append(getName());
+        description.append(", by ");
+        description.append(getArtistName());
+        return description.toString();
+    }
+
     public String getProgressDurationString() {
         StringBuilder info = new StringBuilder();
         info.append("The track is ");
@@ -103,6 +127,14 @@ public class Track {
         info.append(getTimeString(progress));
         info.append(" of the way through.");
         return info.toString();
+    }
+
+    public String getFullAlbumDescription() {
+        StringBuilder description = new StringBuilder();
+        description.append(getAlbumName());
+        description.append(", by ");
+        description.append(getAlbumArtist());
+        return description.toString();
     }
     
     public String getTimeString(int millis) {
@@ -133,67 +165,4 @@ public class Track {
         return durationString.toString().trim();
     }    
     
-    public class TrackItem {
-
-        private String name;
-        private Artist[] artists;
-        private Album album;
-        private String id;
-        private boolean explicit;
-
-        @JsonProperty("duration_ms")
-        private int duration;
-
-        public TrackItem() {
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public Artist[] getArtists() {
-            return artists;
-        }
-
-        public void setArtists(Artist[] artists) {
-            this.artists = artists;
-        }
-
-        public Album getAlbum() {
-            return album;
-        }
-
-        public void setAlbum(Album album) {
-            this.album = album;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public boolean isExplicit() {
-            return explicit;
-        }
-
-        public void setExplicit(boolean explicit) {
-            this.explicit = explicit;
-        }
-
-        public int getDuration() {
-            return duration;
-        }
-
-        public void setDuration(int duration) {
-            this.duration = duration;
-        }
-    }
-
 }

@@ -6,7 +6,6 @@
 
 package com.sk7software.whatsthatsong.model;
 
-import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -21,26 +20,26 @@ public class Album {
     private String name;
     private String uri;
     private String id;
-    private AlbumArt[] images;
     private TrackPage tracks;
-    
+    private Artist[] artists;
+
     @JsonProperty("release_date")
     private String releaseDate;
-    
+
     @JsonProperty("release_date_precision")
     private String releaseDatePrecision;
 
     public Album() {
     }
 
-    public static Album createFromJSON(JSONObject response) throws IOException, JSONException {
-        Album album = new Album();
+    public static Album createFromJSON(JSONObject response) throws IOException {
+        Album album;
         ObjectMapper mapper = new ObjectMapper()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         album = mapper.readValue(response.toString(), Album.class);
         return album;
     }
-    
+
     public String getName() {
         return name;
     }
@@ -48,14 +47,6 @@ public class Album {
     public void setName(String name) {
         this.name = name;
     }
-
-    public AlbumArt[] getImages() {
-        return images;
-    }
-
-    public void setImages(AlbumArt[] images) {
-        this.images = images;
-    }  
 
     public String getUri() {
         return uri;
@@ -96,7 +87,7 @@ public class Album {
     public void setReleaseDatePrecision(String releaseDatePrecision) {
         this.releaseDatePrecision = releaseDatePrecision;
     }
-    
+
     private String getReleaseYear() {
         if (releaseDate.length() >= 4) {
             return releaseDate.substring(0, 4);
@@ -115,8 +106,32 @@ public class Album {
         } else {
             info.append(" track");
         }
-        
+
         return info.toString();
+    }
+
+    public Artist[] getArtists() {
+        return artists;
+    }
+
+    public void setArtists(Artist[] artists) {
+        this.artists = artists;
+    }
+
+    public String getArtistName() {
+        if (getArtists().length > 0) {
+            return getArtists()[0].getName();
+        } else {
+            return "Unknown artist";
+        }
+    }
+
+    public String getFullAlbumDescription() {
+        StringBuilder description = new StringBuilder();
+        description.append(getName());
+        description.append(", by ");
+        description.append(getArtistName());
+        return description.toString();
     }
 
     public class TrackPage {

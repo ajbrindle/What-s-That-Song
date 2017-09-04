@@ -65,7 +65,10 @@
         ]
     },
     {
-        "intent": "DeviceMuteIntent"
+      "intent": "DeviceMuteIntent"
+    },
+    {
+      "intent": "DeviceUnmuteIntent"
     },
     {
       "intent": "AMAZON.HelpIntent"

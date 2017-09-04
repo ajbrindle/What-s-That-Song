@@ -58,6 +58,7 @@ public class AlbumTest {
         Album result = Album.createFromJSON(response);
         assertEquals("She's So Unusual", result.getName());
         assertEquals(13, result.getTracks().getTotal());
+        assertEquals("She's So Unusual, by Cyndi Lauper", result.getFullAlbumDescription());
     }
 
     @Test(expected = JSONException.class)

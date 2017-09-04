@@ -17,7 +17,7 @@ import java.io.InputStreamReader;
  *
  * @author Andrew
  */
-public class TestUtilities {
+class TestUtilities {
     public static JSONObject fetchJSON(InputStream in) throws IOException, JSONException {
         BufferedReader streamReader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
         StringBuilder responseStrBuilder = new StringBuilder();
