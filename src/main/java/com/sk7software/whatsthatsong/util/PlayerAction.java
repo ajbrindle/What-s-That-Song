@@ -5,5 +5,6 @@ public enum PlayerAction {
     RESTART,
     PAUSE,
     RESUME,
-    PLAY_ALBUM
+    PLAY_ALBUM,
+    PLAY_ORIGINAL_ALBUM
 }

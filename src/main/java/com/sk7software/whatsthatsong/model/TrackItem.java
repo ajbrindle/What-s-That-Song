@@ -1,11 +1,13 @@
 package com.sk7software.whatsthatsong.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class TrackItem {
     private String name;
     private Artist[] artists;
     private Album album;
+
     private String id;
     private boolean explicit;
 
@@ -63,4 +65,15 @@ public class TrackItem {
         this.duration = duration;
     }
 
+    public class LinkedFrom {
+        private String id;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+    }
 }

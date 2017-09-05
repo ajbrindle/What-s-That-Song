@@ -43,6 +43,8 @@ public class PlayerControlSpeechlet {
             String spotifyURL;
             String method;
             Map<String, Object> postParams = new HashMap<>();
+            Map<String, Object> position = new HashMap<>();
+            Track track = TrackSpeechlet.getInstance().getTrack();
 
             switch (action) {
                 case SKIP:
@@ -66,12 +68,27 @@ public class PlayerControlSpeechlet {
                     method = "PUT";
                     break;
                 case PLAY_ALBUM:
-                    Track track = TrackSpeechlet.getInstance().getTrack();
                     spotifyURL = "https://api.spotify.com/v1/me/player/play";
                     speechText.append("Playing ");
                     speechText.append(track.getAlbumName());
                     method = "PUT";
                     postParams.put("context_uri", track.getAlbumUri());
+                    position.put("position", 0);
+                    postParams.put("offset", position);
+                    break;
+                case PLAY_ORIGINAL_ALBUM:
+                    spotifyURL = "https://api.spotify.com/v1/me/player/play";
+                    if (track.hasOriginalAlbum()) {
+                        speechText.append("Playing ");
+                        speechText.append(track.getOriginalAlbumName());
+                        method = "PUT";
+                        postParams.put("context_uri", track.getOriginalAlbumUri());
+                        position.put("position", 0);
+                        postParams.put("offset", position);
+                    } else {
+                        speechText.append("Please ask if this track has an original album first");
+                        return SpeechletUtils.buildStandardAskResponse(speechText.toString(), false);
+                    }
                     break;
                 default:
                     // Never happens as actions are controlled by speechlet

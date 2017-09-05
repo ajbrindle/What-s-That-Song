@@ -34,9 +34,12 @@ public class TrackSpeechlet {
     public SpeechletResponse getNowPlayingResponse() {
         StringBuilder speechText = new StringBuilder();
 
-        // Get currently playing track
         try {
-            String trackStr = SpeechletUtils.getJsonResponse("https://api.spotify.com/v1/me/player",
+            // Get currently playing track and append market for track relinking
+            String url = "https://api.spotify.com/v1/me/player/currently-playing" +
+                    ("".equals(SpotifyAuthentication.getMarket()) ? "" :
+                            "?market=" + SpotifyAuthentication.getMarket());
+            String trackStr = SpeechletUtils.getJsonResponse(url,
                     SpotifyAuthentication.getAccessToken());
             track = Track.createFromJSON(new JSONObject(trackStr));
             speechText.append(track.getFullDescription());
@@ -53,10 +56,21 @@ public class TrackSpeechlet {
 
         // Lookup the track id
         try {
+            log.info("Lookup " + track.getId());
             String trackStr = SpeechletUtils.getJsonResponse("https://api.spotify.com/v1/tracks/" + track.getId(),
                     SpotifyAuthentication.getAccessToken());
             Track originalTrack = Track.createFromItemJSON(new JSONObject(trackStr));
-            speechText.append(originalTrack.getFullAlbumDescription());
+            if (originalTrack.getAlbumId().equals(track.getAlbumId())) {
+                speechText.append("This is the original album track.");
+            } else {
+                Album album = fetchAlbum(originalTrack.getAlbumId());
+                speechText.append("The track is from the original album ");
+                speechText.append(originalTrack.getFullAlbumDescription());
+                speechText.append(". ");
+                speechText.append(album.getAlbumInfo());
+                track.setOriginalAlbumUri(originalTrack.getAlbumUri());
+                track.setOriginalAlbumName(originalTrack.getAlbumName());
+            }
         } catch (Exception e) {
             speechText.append("Sorry, I couldn't find any original track information");
             log.error(e.getMessage());
@@ -94,10 +108,7 @@ public class TrackSpeechlet {
         try {
             if (track != null) {
                 // Fetch the album
-                String albumStr = SpeechletUtils.getJsonResponse("https://api.spotify.com/v1/albums/" + track.getAlbumId(),
-                        SpotifyAuthentication.getAccessToken());
-                Album album = Album.createFromJSON(new JSONObject(albumStr));
-
+                Album album = fetchAlbum(track.getAlbumId());
                 speechText.append("This track is from the album ");
                 speechText.append(album.getFullAlbumDescription());
                 speechText.append(". ");
@@ -111,6 +122,12 @@ public class TrackSpeechlet {
         }
 
         return SpeechletUtils.buildStandardAskResponse(speechText.toString(), true);
+    }
+
+    private Album fetchAlbum(String id) throws Exception {
+        String albumStr = SpeechletUtils.getJsonResponse("https://api.spotify.com/v1/albums/" + id,
+                SpotifyAuthentication.getAccessToken());
+        return Album.createFromJSON(new JSONObject(albumStr));
     }
 
     public SpeechletResponse getTrackTimeResponse() {

@@ -1,68 +1,74 @@
 {
   "intents": [
     {
-        "intent": "WhatsThatSongIntent"
+      "intent": "WhatsThatSongIntent"
     },
     {
-        "intent": "PlayerControlSkipIntent"
+      "intent": "PlayerControlSkipIntent"
     },
     {
-        "intent": "PlayerControlResumeIntent"
+      "intent": "PlayerControlResumeIntent"
     },
     {
-        "intent": "PlayerControlPauseIntent"
+      "intent": "PlayerControlPauseIntent"
     },
     {
-        "intent": "PlayerControlRestartIntent"
+      "intent": "PlayerControlRestartIntent"
     },
     {
-        "intent": "TrackExplicitIntent"
+      "intent": "TrackExplicitIntent"
     },
     {
-        "intent": "TrackTimeIntent"
+      "intent": "TrackTimeIntent"
     },
     {
-        "intent": "AlbumNameIntent"
+      "intent": "AlbumNameIntent"
     },
     {
-        "intent": "AlbumPlayIntent"
+      "intent": "AlbumPlayIntent"
     },
     {
-        "intent": "DeviceListIntent"
+      "intent": "OriginalAlbumNameIntent"
     },
     {
-        "intent": "DeviceFetchIntent"
+      "intent": "OriginalAlbumPlayIntent"
     },
     {
-        "intent": "DevicePlayIntent",
-        "slots": [
-            {
-                "name": "deviceNumber",
-                "type": "AMAZON.NUMBER"
-            }
-        ]
+      "intent": "DeviceListIntent"
     },
     {
-        "intent": "DevicePlayByNameIntent",
-        "slots": [
-            {
-                "name": "deviceName",
-                "type": "deviceNames"
-            }
-        ]
+      "intent": "DeviceFetchIntent"
     },
     {
-        "intent": "DeviceVolumeIntent",
-        "slots": [
-            {
-                "name": "volumeAmount",
-                "type": "AMAZON.NUMBER"
-            },
-            {
-                "name": "volumeDirection",
-                "type": "UpDown"
-            }
-        ]
+      "slots": [
+        {
+          "name": "deviceNumber",
+          "type": "AMAZON.NUMBER"
+        }
+      ],
+      "intent": "DevicePlayIntent"
+    },
+    {
+      "slots": [
+        {
+          "name": "deviceName",
+          "type": "deviceNames"
+        }
+      ],
+      "intent": "DevicePlayByNameIntent"
+    },
+    {
+      "slots": [
+        {
+          "name": "volumeAmount",
+          "type": "AMAZON.NUMBER"
+        },
+        {
+          "name": "volumeDirection",
+          "type": "UpDown"
+        }
+      ],
+      "intent": "DeviceVolumeIntent"
     },
     {
       "intent": "DeviceMuteIntent"

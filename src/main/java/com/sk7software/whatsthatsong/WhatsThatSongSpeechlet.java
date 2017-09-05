@@ -81,6 +81,8 @@ public class WhatsThatSongSpeechlet implements Speechlet {
                 return PlayerControlSpeechlet.getInstance().playerControl(PlayerAction.PLAY_ALBUM);
             case "OriginalAlbumNameIntent":
                 return TrackSpeechlet.getInstance().getTrackOriginalAlbumResponse();
+            case "OriginalAlbumPlayIntent":
+                return PlayerControlSpeechlet.getInstance().playerControl(PlayerAction.PLAY_ORIGINAL_ALBUM);
             case "TrackTimeIntent":
                 return TrackSpeechlet.getInstance().getTrackTimeResponse();
             case "DeviceListIntent":

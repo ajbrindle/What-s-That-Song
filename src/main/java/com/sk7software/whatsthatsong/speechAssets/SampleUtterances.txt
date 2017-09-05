@@ -2,12 +2,12 @@ WhatsThatSongIntent What is this song
 WhatsThatSongIntent What's this song
 WhatsThatSongIntent What's playing
 WhatsThatSongIntent What's playing on Spotify
-PlayerControlRestartIntent Restart it
-PlayerControlPauseIntent Pause it
-PlayerControlResumeIntent Play it
-PlayerControlResumeIntent Resume it
 PlayerControlSkipIntent Skip it
 PlayerControlSkipIntent Don't like it skip it
+PlayerControlResumeIntent Play it
+PlayerControlResumeIntent Resume it
+PlayerControlPauseIntent Pause it
+PlayerControlRestartIntent Restart it
 TrackExplicitIntent Is it explicit
 TrackTimeIntent How long is it
 TrackTimeIntent Where is it up to
@@ -16,6 +16,11 @@ AlbumNameIntent What album is it on
 AlbumNameIntent What's the album
 AlbumPlayIntent Play the album
 AlbumPlayIntent Play the whole album
+OriginalAlbumNameIntent What's the original album
+OriginalAlbumNameIntent What is the original album
+OriginalAlbumNameIntent What album by the artist is it on
+OriginalAlbumPlayIntent Play the original album
+OriginalAlbumPlayIntent Play the artist album
 DeviceListIntent List devices
 DeviceListIntent List my devices
 DeviceListIntent List my available devices

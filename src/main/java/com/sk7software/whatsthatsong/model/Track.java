@@ -7,7 +7,7 @@
 package com.sk7software.whatsthatsong.model;
 
 import com.amazonaws.util.json.JSONObject;
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +22,11 @@ public class Track {
     private TrackItem item;
     @JsonProperty("progress_ms")
     private int progress;
-    
+    @JsonIgnore
+    private String originalAlbumUri;
+    @JsonIgnore
+    private String originalAlbumName;
+
     public Track() {}
 
     public static Track createFromJSON(JSONObject response) throws IOException {
@@ -110,6 +114,26 @@ public class Track {
         return item.getAlbum().getId();
     }
 
+    public String getOriginalAlbumUri() {
+        return originalAlbumUri;
+    }
+
+    public void setOriginalAlbumUri(String originalAlbumUri) {
+        this.originalAlbumUri = originalAlbumUri;
+    }
+
+    public String getOriginalAlbumName() {
+        return originalAlbumName;
+    }
+
+    public void setOriginalAlbumName(String originalAlbumName) {
+        this.originalAlbumName = originalAlbumName;
+    }
+
+    public boolean hasOriginalAlbum() {
+        return (originalAlbumUri != null && !"".equals(originalAlbumUri));
+    }
+
     public String getFullDescription() {
         StringBuilder description = new StringBuilder();
         description.append("This song is ");
@@ -163,6 +187,5 @@ public class Track {
         }
         
         return durationString.toString().trim();
-    }    
-    
+    }
 }
