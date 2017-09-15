@@ -1,13 +1,18 @@
 package com.sk7software.whatsthatsong;
 
 import com.amazon.speech.speechlet.SpeechletResponse;
+import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
+import com.sk7software.whatsthatsong.exception.SpeechException;
+import com.sk7software.whatsthatsong.exception.UsageLimitException;
 import com.sk7software.whatsthatsong.model.Album;
 import com.sk7software.whatsthatsong.model.Track;
 import com.sk7software.whatsthatsong.util.SpeechletUtils;
 import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 public class TrackSpeechlet {
 
@@ -43,6 +48,8 @@ public class TrackSpeechlet {
                     SpotifyAuthentication.getAccessToken());
             track = Track.createFromJSON(new JSONObject(trackStr));
             speechText.append(track.getFullDescription());
+        } catch (UsageLimitException ule) {
+            speechText.append(ule.getSpeechText());
         } catch (Exception e) {
             speechText.append("Sorry, I can't find the currently playing track");
             log.error(e.getMessage());
@@ -71,6 +78,8 @@ public class TrackSpeechlet {
                 track.setOriginalAlbumUri(originalTrack.getAlbumUri());
                 track.setOriginalAlbumName(originalTrack.getAlbumName());
             }
+        } catch (UsageLimitException ule) {
+            speechText.append(ule.getSpeechText());
         } catch (Exception e) {
             speechText.append("Sorry, I couldn't find any original track information");
             log.error(e.getMessage());
@@ -116,6 +125,8 @@ public class TrackSpeechlet {
             } else {
                 speechText.append("Sorry, I can't find any information about the track");
             }
+        } catch (UsageLimitException ule) {
+            speechText.append(ule.getSpeechText());
         } catch (Exception e) {
             speechText.append("Sorry, I can't find the currently playing track");
             log.error(e.getMessage());
@@ -124,7 +135,7 @@ public class TrackSpeechlet {
         return SpeechletUtils.buildStandardAskResponse(speechText.toString(), true);
     }
 
-    private Album fetchAlbum(String id) throws Exception {
+    private Album fetchAlbum(String id) throws SpeechException, JSONException, IOException {
         String albumStr = SpeechletUtils.getJsonResponse("https://api.spotify.com/v1/albums/" + id,
                 SpotifyAuthentication.getAccessToken());
         return Album.createFromJSON(new JSONObject(albumStr));
@@ -140,6 +151,8 @@ public class TrackSpeechlet {
                     SpotifyAuthentication.getAccessToken());
             track = Track.createFromJSON(new JSONObject(trackStr));
             speechText.append(track.getProgressDurationString());
+        } catch (UsageLimitException ule) {
+            speechText.append(ule.getSpeechText());
         } catch (Exception e) {
             speechText.append("Sorry, I can't find the currently playing track");
             log.error(e.getMessage());
@@ -147,6 +160,4 @@ public class TrackSpeechlet {
 
         return SpeechletUtils.buildStandardAskResponse(speechText.toString(), true);
     }
-
-
 }

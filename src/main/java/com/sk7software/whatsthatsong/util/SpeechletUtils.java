@@ -4,6 +4,7 @@ import com.amazon.speech.speechlet.SpeechletResponse;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.Reprompt;
 import com.amazon.speech.ui.SimpleCard;
+import com.sk7software.whatsthatsong.exception.UsageLimitException;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +21,10 @@ public class SpeechletUtils {
     public static final String REPROMPT_TEXT = "Next Action?";
     public static final int RESPONSE_DONE = 204;
     public static final int RESPONSE_RETRY = 202;
+    public static final int RESPONSE_LIMIT = 429;
     public static final int RESPONSE_ERROR = 0;
 
-    public static String getJsonResponse(String requestURL, String accessToken) {
+    public static String getJsonResponse(String requestURL, String accessToken) throws UsageLimitException {
         InputStreamReader inputStream = null;
         BufferedReader bufferedReader = null;
         String text;
@@ -37,14 +39,19 @@ public class SpeechletUtils {
             // stuff the Authorization request header
             con.setRequestProperty("Authorization",
                     "Bearer " + accessToken);
+            con.connect();
 
-            inputStream = new InputStreamReader(con.getInputStream(), Charset.forName("US-ASCII"));
-            bufferedReader = new BufferedReader(inputStream);
-            StringBuilder builder = new StringBuilder();
-            while ((line = bufferedReader.readLine()) != null) {
-                builder.append(line);
+            if (con.getResponseCode() == RESPONSE_LIMIT) {
+                throw new UsageLimitException(con);
+            } else {
+                inputStream = new InputStreamReader(con.getInputStream(), Charset.forName("US-ASCII"));
+                bufferedReader = new BufferedReader(inputStream);
+                StringBuilder builder = new StringBuilder();
+                while ((line = bufferedReader.readLine()) != null) {
+                    builder.append(line);
+                }
+                text = builder.toString();
             }
-            text = builder.toString();
         } catch (IOException e) {
             // reset text variable to a blank string
             log.error(e.getMessage());

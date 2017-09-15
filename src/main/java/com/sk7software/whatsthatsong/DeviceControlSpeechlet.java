@@ -4,11 +4,13 @@ import com.amazon.speech.slu.Intent;
 import com.amazon.speech.speechlet.SpeechletResponse;
 import com.amazonaws.util.json.JSONObject;
 import com.sk7software.whatsthatsong.exception.SpeechException;
+import com.sk7software.whatsthatsong.exception.UsageLimitException;
 import com.sk7software.whatsthatsong.model.AvailableDevices;
 import com.sk7software.whatsthatsong.model.Device;
 import com.sk7software.whatsthatsong.util.SpeechSlot;
 import com.sk7software.whatsthatsong.util.SpeechletUtils;
 import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
+import com.sun.prism.Texture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +48,9 @@ public class DeviceControlSpeechlet {
             log.info(devicesStr);
             devices = AvailableDevices.createFromJSON(new JSONObject(devicesStr));
             speechText = devices.getDeviceList(list);
+        } catch (UsageLimitException ule) {
+            speechText = ule.getSpeechText();
+            log.error(ule.getMessage());
         } catch (SpeechException se) {
             speechText = se.getSpeechText();
             log.error(se.getMessage());
@@ -95,25 +100,29 @@ public class DeviceControlSpeechlet {
     }
 
     private String playOnDevice(String id) {
-        StringBuilder speechText = new StringBuilder();
-        Map<String, Object> param = new HashMap<>();
-        param.put("device_ids", new String[]{id});
+        try {
+            StringBuilder speechText = new StringBuilder();
+            Map<String, Object> param = new HashMap<>();
+            param.put("device_ids", new String[]{id});
 
-        int responseCode = PlayerControlSpeechlet.getInstance()
-                .sendPlayerCommand(
-                        "https://api.spotify.com/v1/me/player",
-                        "PUT", param);
+            int responseCode = PlayerControlSpeechlet.getInstance()
+                    .sendPlayerCommand(
+                            "https://api.spotify.com/v1/me/player",
+                            "PUT", param);
 
-        if (responseCode == RESPONSE_RETRY) {
-            speechText.append("Sorry, that didn't work.  Please try again.");
-        } else if (responseCode != RESPONSE_DONE) {
-            speechText.append("Sorry, I'm unable to complete that action.");
-        } else {
-            devices.setActiveDevice(id);
-            speechText.append("Playing on ").append(devices.getActiveDevice().getName());
+            if (responseCode == RESPONSE_RETRY) {
+                speechText.append("Sorry, that didn't work.  Please try again.");
+            } else if (responseCode != RESPONSE_DONE) {
+                speechText.append("Sorry, I'm unable to complete that action.");
+            } else {
+                devices.setActiveDevice(id);
+                speechText.append("Playing on ").append(devices.getActiveDevice().getName());
+            }
+
+            return speechText.toString();
+        } catch (UsageLimitException ule) {
+            return ule.getSpeechText();
         }
-
-        return speechText.toString();
     }
 
     public SpeechletResponse getDeviceVolumeResponse(Intent intent) {
@@ -163,50 +172,57 @@ public class DeviceControlSpeechlet {
 
     private String setDeviceVolume(Device device, int newVolume, int oldVolume) {
         StringBuilder speechText = new StringBuilder();
-        StringBuilder volumeURL = new StringBuilder();
+        String volumeURL;
 
         log.info("Changing volume from " + oldVolume + " to " + newVolume);
 
-        volumeURL.append("https://api.spotify.com/v1/me/player/volume?volume_percent=");
-        volumeURL.append(String.valueOf(newVolume));
+        volumeURL = "https://api.spotify.com/v1/me/player/volume?volume_percent=" + String.valueOf(newVolume);
 
-        int responseCode = PlayerControlSpeechlet.getInstance().sendPlayerCommand(
-                volumeURL.toString(),
-                "PUT", null);
+        try {
+            int responseCode = PlayerControlSpeechlet.getInstance().sendPlayerCommand(
+                    volumeURL.toString(),
+                    "PUT", null);
 
-        if (responseCode == RESPONSE_RETRY) {
-            // Can retry twice, 5 seconds apart
-            for (int i = 0; i < 2; i++) {
-                try {
-                    Thread.sleep(5000);
-                    responseCode = PlayerControlSpeechlet.getInstance().sendPlayerCommand(
-                            volumeURL.toString(),
-                            "PUT", null);
-                    if (responseCode != RESPONSE_RETRY) {
-                        break;
+            if (responseCode == RESPONSE_RETRY) {
+                // Can retry twice, 5 seconds apart
+                for (int i = 0; i < 2; i++) {
+                    try {
+                        Thread.sleep(5000);
+                        responseCode = PlayerControlSpeechlet.getInstance().sendPlayerCommand(
+                                volumeURL.toString(),
+                                "PUT", null);
+                        if (responseCode != RESPONSE_RETRY) {
+                            break;
+                        }
+                    } catch (InterruptedException e) {
                     }
-                } catch (InterruptedException e) {
                 }
             }
-        }
 
-        if (responseCode != RESPONSE_DONE) {
-            speechText.append("Sorry, I'm unable to complete that action.");
-        } else {
-            device.setVolumePercent(newVolume);
-            device.setOldVolumePercent(oldVolume);
-
-            if (newVolume == 0) {
-                speechText.append("Muted");
-            } else if (oldVolume == 0) {
-                speechText.append("Unmuted");
+            if (responseCode != RESPONSE_DONE) {
+                speechText.append("Sorry, I'm unable to complete that action.");
             } else {
-                speechText.append("Volume ");
-                speechText.append(newVolume < oldVolume ? "down" : "up");
-            }
-        }
+                device.setVolumePercent(newVolume);
+                device.setOldVolumePercent(oldVolume);
 
-        return speechText.toString();
+                if (newVolume == 0) {
+                    speechText.append("Muted");
+                } else if (oldVolume == 0) {
+                    speechText.append("Unmuted");
+                } else {
+                    speechText.append("Volume ");
+                    speechText.append(newVolume < oldVolume ? "down" : "up");
+//                    speechText.append(" from ");
+//                    speechText.append(oldVolume);
+//                    speechText.append(" to ");
+//                    speechText.append(newVolume);
+                }
+            }
+
+            return speechText.toString();
+        } catch (UsageLimitException ule) {
+            return ule.getSpeechText();
+        }
     }
 
     public SpeechletResponse getDeviceUnmuteResponse() {

@@ -2,9 +2,14 @@ package com.sk7software.whatsthatsong.exception;
 
 public abstract class SpeechException extends Exception {
 
-    private final String speechText;
+    protected String speechText;
 
-    SpeechException(String message) {
+    public SpeechException() {
+        super();
+        speechText = "An error occurred";
+    }
+
+    public SpeechException(String message) {
         super(message);
         speechText = message;
     }

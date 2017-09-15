@@ -3,10 +3,12 @@ package com.sk7software.whatsthatsong;
 import com.amazon.speech.speechlet.SpeechletResponse;
 import com.amazonaws.util.json.JSONObject;
 import com.sk7software.whatsthatsong.exception.SpotifyAuthenticationException;
+import com.sk7software.whatsthatsong.exception.UsageLimitException;
 import com.sk7software.whatsthatsong.model.Track;
 import com.sk7software.whatsthatsong.util.PlayerAction;
 import com.sk7software.whatsthatsong.util.SpeechletUtils;
 import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
+import com.sun.prism.Texture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,9 +18,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.sk7software.whatsthatsong.util.SpeechletUtils.RESPONSE_DONE;
-import static com.sk7software.whatsthatsong.util.SpeechletUtils.RESPONSE_ERROR;
-import static com.sk7software.whatsthatsong.util.SpeechletUtils.RESPONSE_RETRY;
+import static com.sk7software.whatsthatsong.util.SpeechletUtils.*;
 
 public class PlayerControlSpeechlet {
     private static PlayerControlSpeechlet instance = null;
@@ -113,14 +113,20 @@ public class PlayerControlSpeechlet {
                 speechText.delete(0, speechText.length());
                 speechText.append("Failed to send action");
             }
+        } catch (UsageLimitException ule) {
+            speechText.delete(0, speechText.length());
+            speechText.append(ule.getSpeechText());
         } catch (Exception e) {
+            speechText.delete(0, speechText.length());
+            speechText.append("An error has occurred");
             log.error(e.getMessage());
         }
 
         return SpeechletUtils.buildStandardAskResponse(speechText.toString(), false);
     }
 
-    public int sendPlayerCommand(String requestURL, String method, Map<String, Object> postParams) {
+    public int sendPlayerCommand(String requestURL, String method, Map<String, Object> postParams)
+        throws UsageLimitException {
         URL url;
         HttpURLConnection con = null;
 
@@ -149,6 +155,11 @@ public class PlayerControlSpeechlet {
             }
 
             log.info("Response: " + con.getResponseCode());
+
+            if (con.getResponseCode() == RESPONSE_LIMIT) {
+                throw new UsageLimitException(con);
+            }
+
             return con.getResponseCode();
         } catch (SpotifyAuthenticationException se) {
             log.error(se.getMessage() + " : " + se.getSpeechText());
