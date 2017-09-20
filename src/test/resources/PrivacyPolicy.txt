@@ -1,0 +1,3 @@
+This application does not share personal information with third parties nor does it store any information about you.
+Your Spotify credentials are required to access the API services that allow the application to identify what is playing, and your country of residence.  No other personal details from you Spotify account are accessed or stored.
+This privacy policy is subject to change without notice and was last updated on 14th September 2017.

@@ -1,39 +1,41 @@
 package com.sk7software.whatsthatsong.util;
 
 import com.amazonaws.util.json.JSONObject;
+import com.sk7software.whatsthatsong.exception.SpeechException;
 import com.sk7software.whatsthatsong.exception.SpotifyAuthenticationException;
+import com.sk7software.whatsthatsong.network.SpotifyWebAPIService;
+import com.sk7software.whatsthatsong.network.UserAPIService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SpotifyAuthentication {
-    private static String accessToken;
-    private static String market;
+    private String accessToken;
+    private String market;
 
     private static final Logger log = LoggerFactory.getLogger(SpotifyAuthentication.class);
 
-    private SpotifyAuthentication() {
+    public SpotifyAuthentication() {
     }
 
-    public static synchronized void setAccessToken(String accessToken) {
-        SpotifyAuthentication.accessToken = accessToken;
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 
-    public static synchronized String getAccessToken() throws SpotifyAuthenticationException{
+    public String getAccessToken() throws SpotifyAuthenticationException{
         if (accessToken != null && !"".equals(accessToken)) {
             return accessToken;
         } else {
-            throw new SpotifyAuthenticationException("Not authorised by Spotify");
+            throw new SpotifyAuthenticationException("You are not authorised by Spotify");
         }
     }
 
-    public static synchronized String getMarket() {
+    public String getMarket() {
         if (market == null || "".equals(market)) {
             try {
-                String userResponse = SpeechletUtils.getJsonResponse("https://api.spotify.com/v1/me",
-                        SpotifyAuthentication.getAccessToken());
-                JSONObject userData = new JSONObject(userResponse);
-                market = (String)userData.get("country");
-            } catch (Exception e) {
+                SpotifyWebAPIService userService = new UserAPIService();
+                market = (String)userService.fetchItem(SpotifyWebAPIService.USER_URL,
+                        this);
+            } catch (SpeechException e) {
                 log.error("Error finding market: " + e.getMessage());
                 market = "";
             }

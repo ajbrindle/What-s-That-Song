@@ -5,7 +5,7 @@ import com.sk7software.whatsthatsong.exception.SpeechException;
 import com.sk7software.whatsthatsong.exception.SpotifyWebAPIException;
 import com.sk7software.whatsthatsong.model.Track;
 import com.sk7software.whatsthatsong.network.NowPlayingAPIService;
-import com.sk7software.whatsthatsong.network.SpotifyWebAPIService;
+import com.sk7software.whatsthatsong.network.SpotifyPlayerAPIService;
 import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
 import org.junit.Before;
 import org.junit.Rule;
@@ -15,10 +15,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-public class SpotifyAPITest {
-
-    private SpotifyWebAPIService service;
+public class SpotifyPlayerAPITest {
+    private SpotifyPlayerAPIService service;
     private SpotifyAuthentication auth;
 
     @Rule
@@ -26,51 +26,51 @@ public class SpotifyAPITest {
 
     @Before
     public void setup() {
-        service = new NowPlayingAPIService();
+        service = new SpotifyPlayerAPIService();
         auth = new SpotifyAuthentication();
         auth.setAccessToken("123");
     }
 
     @Test
     public void rateLimitReachedTest() throws Exception {
-        stubFor(get(urlPathMatching("/rateLimit"))
+        stubFor(put(urlPathMatching("/rateLimit"))
                 .willReturn(aResponse()
                         .withStatus(429)
-                        .withHeader("Retry-After", "150")));
+                        .withHeader("Retry-After", "0")));
         try {
-            Object track = service.fetchItem("http://localhost:8089/rateLimit", auth);
+            service.sendPlayerCommand("http://localhost:8089/rateLimit", "PUT", null, auth);
             assertFalse(true);
         } catch (SpeechException ule) {
             assertEquals("The usage limit for Spotify has been exceeded. " +
-                    "Please do not make any more requests for 2 minutes, 31 seconds",
+                            "Please do not make any more requests for 1 second",
                     ule.getSpeechText());
         }
     }
 
     @Test
     public void rateLimitReachedOtherTest() throws Exception {
-        stubFor(get(urlPathMatching("/rateLimit"))
+        stubFor(put(urlPathMatching("/rateLimit"))
                 .willReturn(aResponse()
                         .withStatus(429)
-                        .withHeader("Retry-After", "60")));
+                        .withHeader("Retry-After", "359")));
         try {
-            Object track = service.fetchItem("http://localhost:8089/rateLimit", auth);
+            service.sendPlayerCommand("http://localhost:8089/rateLimit", "PUT", null, auth);
             assertFalse(true);
         } catch (SpeechException ule) {
             assertEquals("The usage limit for Spotify has been exceeded. " +
-                            "Please do not make any more requests for 1 minute, 1 second",
+                            "Please do not make any more requests for 6 minutes",
                     ule.getSpeechText());
         }
     }
 
     @Test
     public void rateLimitReachedLastTest() throws Exception {
-        stubFor(get(urlPathMatching("/rateLimit"))
+        stubFor(put(urlPathMatching("/rateLimit"))
                 .willReturn(aResponse()
                         .withStatus(429)
                         .withHeader("Retry-After", "10")));
         try {
-            Object track = service.fetchItem("http://localhost:8089/rateLimit", auth);
+            service.sendPlayerCommand("http://localhost:8089/rateLimit", "PUT", null, auth);
             assertFalse(true);
         } catch (SpeechException ule) {
             assertEquals("The usage limit for Spotify has been exceeded. " +
@@ -81,33 +81,32 @@ public class SpotifyAPITest {
 
     @Test(expected = SpotifyWebAPIException.class)
     public void retryFailTest() throws Exception {
-        stubFor(get(urlPathMatching("/retry"))
+        stubFor(put(urlPathMatching("/retry"))
                 .willReturn(aResponse()
                         .withStatus(202)
                         .withHeader("Retry-After", "10")));
 
         service.setRetryInterval(5);
-        Track track = (Track)service.fetchItem("http://localhost:8089/retry", auth);
+        service.sendPlayerCommand("http://localhost:8089/retry", "PUT", null, auth);
         assertFalse(true);
     }
 
     @Test
     public void retrySuccessTest() throws Exception {
-        stubFor(get(urlPathMatching("/retry")).inScenario("Retry test")
+        stubFor(put(urlPathMatching("/retry")).inScenario("Retry test")
                 .whenScenarioStateIs(STARTED)
                 .willReturn(aResponse()
                         .withStatus(202))
                 .willSetStateTo("retried"));
 
-        stubFor(get(urlPathMatching("/retry")).inScenario("Retry test")
+        stubFor(put(urlPathMatching("/retry")).inScenario("Retry test")
                 .whenScenarioStateIs("retried")
                 .willReturn(aResponse()
-                        .withStatus(200)
-                .withBodyFile("nowplaying.json")));
+                        .withStatus(204)));
 
         service.setRetryInterval(5);
-        Track result = (Track)service.fetchItem("http://localhost:8089/retry", auth);
-        assertEquals("Mr. Brightside", result.getName());
+        service.sendPlayerCommand("http://localhost:8089/retry", "PUT", null, auth);
+        assertTrue(true);
     }
 
 }

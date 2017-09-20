@@ -34,8 +34,8 @@ public class UsageLimitException extends SpeechException {
         } else {
             int minutes = retryAfter / 60;
             int seconds = retryAfter % 60;
-            return minutes + " minute" + (minutes == 1 ? ", " : "s, ") +
-                    seconds + " second" + (seconds == 1 ? "" : "s");
+            return minutes + " minute" + (minutes == 1 ? "" : "s") +
+                    (seconds > 0 ? ", " + seconds + " second" + (seconds == 1 ? "" : "s") : "");
         }
     }
 }

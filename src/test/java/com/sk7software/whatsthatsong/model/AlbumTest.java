@@ -10,11 +10,16 @@ import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.sk7software.whatsthatsong.exception.SpotifyWebAPIException;
+import com.sk7software.whatsthatsong.network.AlbumAPIService;
+import com.sk7software.whatsthatsong.network.NowPlayingAPIService;
+import com.sk7software.whatsthatsong.network.SpotifyWebAPIService;
+import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
+import org.junit.*;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.*;
 
 /**
@@ -22,7 +27,13 @@ import static org.junit.Assert.*;
  * @author Andrew
  */
 public class AlbumTest {
-    
+
+    private SpotifyWebAPIService service;
+    private SpotifyAuthentication auth;
+
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(8089);
+
     public AlbumTest() {
     }
     
@@ -36,43 +47,54 @@ public class AlbumTest {
     
     @Before
     public void setUp() {
+        auth = new SpotifyAuthentication();
+        auth.setAccessToken("123");
     }
     
     @After
     public void tearDown() {
     }
 
-    private JSONObject fetchJSON(String filename) throws IOException, JSONException {
-        InputStream in = this.getClass().getClassLoader().getResourceAsStream(filename);
-        return TestUtilities.fetchJSON(in);
-    }
-
-
     /**
      * Test of createFromJSON method, of class Album.
      */
     @Test
     public void testCreateFromJSON() throws Exception {
-        System.out.println("createFromJSON");
-        JSONObject response = fetchJSON("album.json");
-        Album result = Album.createFromJSON(response);
+        service = new AlbumAPIService();
+        stubFor(get(urlPathMatching("/album"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("album.json")));
+
+        Album result = (Album)service.fetchItem("http://localhost:8089/album", auth);
         assertEquals("She's So Unusual", result.getName());
         assertEquals(13, result.getTracks().getTotal());
         assertEquals("She's So Unusual, by Cyndi Lauper", result.getFullAlbumDescription());
     }
 
-    @Test(expected = JSONException.class)
+    @Test(expected = SpotifyWebAPIException.class)
     public void testCreateFromInvalidJSON() throws Exception {
-        System.out.println("createFromJSON");
-        JSONObject response = fetchJSON("garbage.txt");
-        Album result = Album.createFromJSON(response);
+        service = new AlbumAPIService();
+        stubFor(get(urlPathMatching("/album"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("garbage.txt")));
+
+        Album result = (Album)service.fetchItem("http://localhost:8089/album", auth);
     }
 
     @Test
     public void testCreateFromErrorJSON() throws Exception {
-        System.out.println("createFromJSON");
-        JSONObject response = fetchJSON("error.json");
-        Album result = Album.createFromJSON(response);
+        service = new AlbumAPIService();
+        stubFor(get(urlPathMatching("/album"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("error.json")));
+
+        Album result = (Album)service.fetchItem("http://localhost:8089/album", auth);
         assertNull(result.getName());
     }
 
@@ -81,17 +103,27 @@ public class AlbumTest {
      */
     @Test
     public void testGetAlbumInfo() throws Exception {
-        System.out.println("getAlbumInfo");
-        JSONObject response = fetchJSON("album.json");
-        Album result = Album.createFromJSON(response);
+        service = new AlbumAPIService();
+        stubFor(get(urlPathMatching("/album"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("album.json")));
+
+        Album result = (Album)service.fetchItem("http://localhost:8089/album", auth);
         assertEquals("It was released in 1983 and contains 13 tracks", result.getAlbumInfo());
     }
 
     @Test
     public void testGetAlbumInfo2() throws Exception {
-        System.out.println("getAlbumInfo");
-        JSONObject response = fetchJSON("album2.json");
-        Album result = Album.createFromJSON(response);
+        service = new AlbumAPIService();
+        stubFor(get(urlPathMatching("/album"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("album2.json")));
+
+        Album result = (Album)service.fetchItem("http://localhost:8089/album", auth);
         assertEquals("It was released in 2010 and contains 1 track", result.getAlbumInfo());
     }
 }

@@ -23,7 +23,6 @@ import com.sk7software.whatsthatsong.util.SpeechletUtils;
 import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sk7software.whatsthatsong.model.Track;
 
 /**
  *
@@ -31,6 +30,10 @@ import com.sk7software.whatsthatsong.model.Track;
  */
 public class WhatsThatSongSpeechlet implements Speechlet {
     private static final Logger log = LoggerFactory.getLogger(WhatsThatSongSpeechlet.class);
+
+    private SpotifyAuthentication authentication = new SpotifyAuthentication();
+    private DeviceControlSpeechlet deviceControlSpeechlet;
+    private TrackSpeechlet trackSpeechlet;
 
     @Override
     public void onSessionStarted(final SessionStartedRequest request, final Session session)
@@ -45,10 +48,12 @@ public class WhatsThatSongSpeechlet implements Speechlet {
         log.info("onLaunch requestId={}, sessionId={}", request.getRequestId(),
                 session.getSessionId());
 
-        SpotifyAuthentication.setAccessToken(session.getUser().getAccessToken());
+        authentication.setAccessToken(session.getUser().getAccessToken());
         log.info("Access token: " + session.getUser().getAccessToken());
 
-        return TrackSpeechlet.getInstance().getNowPlayingResponse();
+        trackSpeechlet = new TrackSpeechlet(authentication);
+        deviceControlSpeechlet = new DeviceControlSpeechlet(authentication);
+        return trackSpeechlet.getNowPlayingResponse();
     }
 
     @Override
@@ -57,48 +62,48 @@ public class WhatsThatSongSpeechlet implements Speechlet {
         log.info("onIntent requestId={}, sessionId={}, intentName={}", request.getRequestId(),
                 session.getSessionId(), (request.getIntent() != null ? request.getIntent().getName() : "null"));
 
-        SpotifyAuthentication.setAccessToken(session.getUser().getAccessToken());
+        authentication.setAccessToken(session.getUser().getAccessToken());
 
         Intent intent = request.getIntent();
         String intentName = (intent != null) ? intent.getName() : "Invalid";
         
         switch (intentName) {
             case "WhatsThatSongIntent":
-                return TrackSpeechlet.getInstance().getNowPlayingResponse();
+                return trackSpeechlet.getNowPlayingResponse();
             case "TrackExplicitIntent":
-                return TrackSpeechlet.getInstance().getTrackExplicitResponse();
+                return trackSpeechlet.getTrackExplicitResponse();
             case "PlayerControlSkipIntent":
-                return PlayerControlSpeechlet.getInstance().playerControl(PlayerAction.SKIP);
+                return deviceControlSpeechlet.playerControl(PlayerAction.SKIP, trackSpeechlet.getTrack());
             case "PlayerControlRestartIntent":
-                return PlayerControlSpeechlet.getInstance().playerControl(PlayerAction.RESTART);
+                return deviceControlSpeechlet.playerControl(PlayerAction.RESTART, trackSpeechlet.getTrack());
             case "PlayerControlPauseIntent":
-                return PlayerControlSpeechlet.getInstance().playerControl(PlayerAction.PAUSE);
+                return deviceControlSpeechlet.playerControl(PlayerAction.PAUSE, trackSpeechlet.getTrack());
             case "PlayerControlResumeIntent":
-                return PlayerControlSpeechlet.getInstance().playerControl(PlayerAction.RESUME);
+                return deviceControlSpeechlet.playerControl(PlayerAction.RESUME, trackSpeechlet.getTrack());
             case "AlbumNameIntent":
-                return TrackSpeechlet.getInstance().getAlbumNameResponse();
+                return trackSpeechlet.getAlbumNameResponse();
             case "AlbumPlayIntent":
-                return PlayerControlSpeechlet.getInstance().playerControl(PlayerAction.PLAY_ALBUM);
+                return deviceControlSpeechlet.playerControl(PlayerAction.PLAY_ALBUM, trackSpeechlet.getTrack());
             case "OriginalAlbumNameIntent":
-                return TrackSpeechlet.getInstance().getTrackOriginalAlbumResponse();
+                return trackSpeechlet.getTrackOriginalAlbumResponse();
             case "OriginalAlbumPlayIntent":
-                return PlayerControlSpeechlet.getInstance().playerControl(PlayerAction.PLAY_ORIGINAL_ALBUM);
+                return deviceControlSpeechlet.playerControl(PlayerAction.PLAY_ORIGINAL_ALBUM, trackSpeechlet.getTrack());
             case "TrackTimeIntent":
-                return TrackSpeechlet.getInstance().getTrackTimeResponse();
+                return trackSpeechlet.getTrackTimeResponse();
             case "DeviceListIntent":
-                return DeviceControlSpeechlet.getInstance().getDevicesResponse(true);
+                return deviceControlSpeechlet.getDevicesResponse(true);
             case "DeviceFetchIntent":
-                return DeviceControlSpeechlet.getInstance().getDevicesResponse(false);
+                return deviceControlSpeechlet.getDevicesResponse(false);
             case "DevicePlayIntent":
-                return DeviceControlSpeechlet.getInstance().getDevicePlayResponse(intent);
+                return deviceControlSpeechlet.getDevicePlayResponse(intent);
             case "DevicePlayByNameIntent":
-                return DeviceControlSpeechlet.getInstance().getDevicePlayByNameResponse(intent);
+                return deviceControlSpeechlet.getDevicePlayByNameResponse(intent);
             case "DeviceVolumeIntent":
-                return DeviceControlSpeechlet.getInstance().getDeviceVolumeResponse(intent);
+                return deviceControlSpeechlet.getDeviceVolumeResponse(intent);
             case "DeviceMuteIntent":
-                return DeviceControlSpeechlet.getInstance().getDeviceMuteResponse();
+                return deviceControlSpeechlet.getDeviceMuteResponse();
             case "DeviceUnmuteIntent":
-                return DeviceControlSpeechlet.getInstance().getDeviceUnmuteResponse();
+                return deviceControlSpeechlet.getDeviceUnmuteResponse();
             case "AMAZON.HelpIntent":
                 return getHelpResponse();
             case "AMAZON.StopIntent":
@@ -113,7 +118,6 @@ public class WhatsThatSongSpeechlet implements Speechlet {
             throws SpeechletException {
         log.info("onSessionEnded requestId={}, sessionId={}", request.getRequestId(),
                 session.getSessionId());
-        SpotifyAuthentication.setAccessToken("");
     }
 
 
@@ -131,6 +135,7 @@ public class WhatsThatSongSpeechlet implements Speechlet {
         helpText.append("You can ask if it contains explicit lyrics by saying, is it explicit. ");
         helpText.append("You can ask what album is it on. ");
         helpText.append("You can ask it to play the whole album. ");
+        helpText.append("Ask to list your devices, then transfer the playback to one of those devices. ");
         helpText.append("Please give your next command.");
 
         // Create the plain text output.
@@ -147,7 +152,7 @@ public class WhatsThatSongSpeechlet implements Speechlet {
     }
 
     private SpeechletResponse getStopResponse() {
-        String stopText = "Goodbye";
+        String stopText = "Enjoy your music. Goodbye";
 
         // Create the plain text output.
         PlainTextOutputSpeech speech = new PlainTextOutputSpeech();

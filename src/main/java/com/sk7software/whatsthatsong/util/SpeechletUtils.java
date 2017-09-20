@@ -17,54 +17,9 @@ import java.net.URL;
 import java.nio.charset.Charset;
 
 public class SpeechletUtils {
-    private static final Logger log = LoggerFactory.getLogger(SpeechletUtils.class);
     public static final String REPROMPT_TEXT = "Next Action?";
-    public static final int RESPONSE_DONE = 204;
-    public static final int RESPONSE_RETRY = 202;
-    public static final int RESPONSE_LIMIT = 429;
-    public static final int RESPONSE_ERROR = 0;
 
-    public static String getJsonResponse(String requestURL, String accessToken) throws UsageLimitException {
-        InputStreamReader inputStream = null;
-        BufferedReader bufferedReader = null;
-        String text;
-        try {
-            String line;
-            URL url = new URL(requestURL);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-
-            // set up url connection to get retrieve information back
-            con.setRequestMethod("GET");
-
-            // stuff the Authorization request header
-            con.setRequestProperty("Authorization",
-                    "Bearer " + accessToken);
-            con.connect();
-
-            if (con.getResponseCode() == RESPONSE_LIMIT) {
-                throw new UsageLimitException(con);
-            } else {
-                inputStream = new InputStreamReader(con.getInputStream(), Charset.forName("US-ASCII"));
-                bufferedReader = new BufferedReader(inputStream);
-                StringBuilder builder = new StringBuilder();
-                while ((line = bufferedReader.readLine()) != null) {
-                    builder.append(line);
-                }
-                text = builder.toString();
-            }
-        } catch (IOException e) {
-            // reset text variable to a blank string
-            log.error(e.getMessage());
-            text = "";
-        } finally {
-            IOUtils.closeQuietly(inputStream);
-            IOUtils.closeQuietly(bufferedReader);
-        }
-
-        return text;
-    }
-
-    public static SpeechletResponse buildStandardAskResponse(String response, boolean doCard) {
+    public static SpeechletResponse buildStandardAskResponse(final String response, final boolean doCard) {
         // Create the plain text output.
         PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
         speech.setText(response);

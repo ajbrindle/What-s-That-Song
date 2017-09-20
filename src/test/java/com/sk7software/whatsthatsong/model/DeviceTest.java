@@ -11,13 +11,16 @@ import com.amazonaws.util.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.sk7software.whatsthatsong.exception.MissingElementException;
+import com.sk7software.whatsthatsong.exception.SpotifyWebAPIException;
 import com.sk7software.whatsthatsong.exception.UnknownDeviceException;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import com.sk7software.whatsthatsong.network.DevicesAPIService;
+import com.sk7software.whatsthatsong.network.SpotifyWebAPIService;
+import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
+import org.junit.*;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.*;
 
 /**
@@ -25,7 +28,13 @@ import static org.junit.Assert.*;
  * @author Andrew
  */
 public class DeviceTest {
-    
+
+    private SpotifyWebAPIService service;
+    private SpotifyAuthentication auth;
+
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(8089);
+
     public DeviceTest() {
     }
     
@@ -39,25 +48,30 @@ public class DeviceTest {
     
     @Before
     public void setUp() {
+        auth = new SpotifyAuthentication();
+        auth.setAccessToken("123");
+        service = new DevicesAPIService();
     }
     
     @After
     public void tearDown() {
     }
 
-    private JSONObject fetchJSON(String filename) throws IOException, JSONException {
-        InputStream in = this.getClass().getClassLoader().getResourceAsStream(filename);
-        return TestUtilities.fetchJSON(in);
-    }
-    
     /**
      * Test of createFromJSON method, of class Device.
      */
     @Test
     public void testCreateFromJSON() throws Exception {
-        System.out.println("createFromJSON");
-        JSONObject response = fetchJSON("devices.json");
-        AvailableDevices result = AvailableDevices.createFromJSON(response);
+        stubFor(get(urlPathMatching("/devices"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("devices.json")));
+
+        AvailableDevices result = (AvailableDevices)service.fetchItem("http://localhost:8089/devices", auth);
+//        System.out.println("createFromJSON");
+//        JSONObject response = fetchJSON("devices.json");
+//        AvailableDevices result = AvailableDevices.createFromJSON(response);
         assertEquals(4, result.getNumberOfDevices());
 
         for (int i=1; i<=result.getNumberOfDevices(); i++) {
@@ -65,17 +79,26 @@ public class DeviceTest {
         }
     }
 
-    @Test (expected = JSONException.class)
+    @Test (expected = SpotifyWebAPIException.class)
     public void testCreateFromInvalidJSON() throws Exception {
-        System.out.println("createFromInvalidJSON");
-        JSONObject response = fetchJSON("garbage.txt");
-        AvailableDevices result = AvailableDevices.createFromJSON(response);
+        stubFor(get(urlPathMatching("/devices"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("garbage.txt")));
+
+        AvailableDevices result = (AvailableDevices)service.fetchItem("http://localhost:8089/devices", auth);
     }
     
-    @Test (expected = JSONException.class)
+    @Test (expected = SpotifyWebAPIException.class)
     public void testCreateFromErrorJSON() throws Exception {
-        JSONObject response = fetchJSON("error.json");
-        AvailableDevices result = AvailableDevices.createFromJSON(response);
+        stubFor(get(urlPathMatching("/devices"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("error.json")));
+
+        AvailableDevices result = (AvailableDevices)service.fetchItem("http://localhost:8089/devices", auth);
     }
 
     /**
@@ -139,16 +162,25 @@ public class DeviceTest {
 
     @Test (expected = UnknownDeviceException.class)
     public void testDeviceIndexZero() throws Exception {
-        System.out.println("createFromJSON");
-        JSONObject response = fetchJSON("devices.json");
-        AvailableDevices result = AvailableDevices.createFromJSON(response);
+        stubFor(get(urlPathMatching("/devices"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("devices.json")));
+
+        AvailableDevices result = (AvailableDevices)service.fetchItem("http://localhost:8089/devices", auth);
         result.getDeviceAtIndex(0);
     }
 
     @Test (expected = UnknownDeviceException.class)
     public void testDeviceIndexPlus1() throws Exception {
-        JSONObject response = fetchJSON("devices.json");
-        AvailableDevices result = AvailableDevices.createFromJSON(response);
+        stubFor(get(urlPathMatching("/devices"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("devices.json")));
+
+        AvailableDevices result = (AvailableDevices)service.fetchItem("http://localhost:8089/devices", auth);
         result.getDeviceAtIndex(result.getNumberOfDevices()+1);
     }
 
@@ -160,8 +192,13 @@ public class DeviceTest {
 
     @Test
     public void testDeviceListVerbose() throws Exception {
-        JSONObject response = fetchJSON("devices.json");
-        AvailableDevices result = AvailableDevices.createFromJSON(response);
+        stubFor(get(urlPathMatching("/devices"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("devices.json")));
+
+        AvailableDevices result = (AvailableDevices)service.fetchItem("http://localhost:8089/devices", auth);
         String list = result.getDeviceList(true);
         String expected = "Device 1 is Echo Dot Speaker. " +
                           "Device 2 is Lounge AVR. " +
@@ -172,8 +209,13 @@ public class DeviceTest {
 
     @Test
     public void testDeviceListNonVerbose() throws Exception {
-        JSONObject response = fetchJSON("devices.json");
-        AvailableDevices result = AvailableDevices.createFromJSON(response);
+        stubFor(get(urlPathMatching("/devices"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("devices.json")));
+
+        AvailableDevices result = (AvailableDevices)service.fetchItem("http://localhost:8089/devices", auth);
         String list = result.getDeviceList(false);
         String expected = "Device list fetched.";
         assertEquals(expected, list);
@@ -187,16 +229,26 @@ public class DeviceTest {
 
     @Test
     public void testActiveDevice() throws Exception {
-        JSONObject response = fetchJSON("devices.json");
-        AvailableDevices result = AvailableDevices.createFromJSON(response);
+        stubFor(get(urlPathMatching("/devices"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("devices.json")));
+
+        AvailableDevices result = (AvailableDevices)service.fetchItem("http://localhost:8089/devices", auth);
         Device d = result.getActiveDevice();
         assertTrue(d.isActive());
     }
 
     @Test
     public void testChangeActiveDeviceId() throws Exception {
-        JSONObject response = fetchJSON("devices.json");
-        AvailableDevices result = AvailableDevices.createFromJSON(response);
+        stubFor(get(urlPathMatching("/devices"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("devices.json")));
+
+        AvailableDevices result = (AvailableDevices)service.fetchItem("http://localhost:8089/devices", auth);
         Device d = result.getActiveDevice();
         int activeIndex = d.getIndex();
         int newIndex = 1;
@@ -216,8 +268,13 @@ public class DeviceTest {
 
     @Test
     public void testChangeActiveDevice() throws Exception {
-        JSONObject response = fetchJSON("devices.json");
-        AvailableDevices result = AvailableDevices.createFromJSON(response);
+        stubFor(get(urlPathMatching("/devices"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("devices.json")));
+
+        AvailableDevices result = (AvailableDevices)service.fetchItem("http://localhost:8089/devices", auth);
         Device original = result.getActiveDevice();
         Device changed = new Device();
 
@@ -236,8 +293,13 @@ public class DeviceTest {
 
     @Test
     public void testDeviceNameMatch() throws Exception {
-        JSONObject response = fetchJSON("devices.json");
-        AvailableDevices result = AvailableDevices.createFromJSON(response);
+        stubFor(get(urlPathMatching("/devices"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("devices.json")));
+
+        AvailableDevices result = (AvailableDevices)service.fetchItem("http://localhost:8089/devices", auth);
         String spokenName = "Mac Computer";
         String id = result.findClosestNameMatchId(spokenName);
         assertEquals("device4", id);
@@ -251,8 +313,13 @@ public class DeviceTest {
 
     @Test (expected = UnknownDeviceException.class)
     public void testDeviceNameNoMatch() throws Exception {
-        JSONObject response = fetchJSON("devices.json");
-        AvailableDevices result = AvailableDevices.createFromJSON(response);
+        stubFor(get(urlPathMatching("/devices"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("devices.json")));
+
+        AvailableDevices result = (AvailableDevices)service.fetchItem("http://localhost:8089/devices", auth);
         result.findClosestNameMatchId("blah bluh");
     }
 }

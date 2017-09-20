@@ -7,6 +7,7 @@ import com.sk7software.whatsthatsong.exception.SpeechException;
 import com.sk7software.whatsthatsong.exception.UsageLimitException;
 import com.sk7software.whatsthatsong.model.Album;
 import com.sk7software.whatsthatsong.model.Track;
+import com.sk7software.whatsthatsong.network.*;
 import com.sk7software.whatsthatsong.util.SpeechletUtils;
 import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
 import org.slf4j.Logger;
@@ -15,21 +16,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 public class TrackSpeechlet {
-
-    private Track track;
-
-    private static TrackSpeechlet instance = null;
-
     private static final Logger log = LoggerFactory.getLogger(TrackSpeechlet.class);
 
-    private TrackSpeechlet() {
-    }
+    private Track track;
+    private SpotifyAuthentication authentication;
 
-    public static synchronized TrackSpeechlet getInstance() {
-        if (instance == null) {
-            instance = new TrackSpeechlet();
-        }
-        return instance;
+    public TrackSpeechlet(SpotifyAuthentication authentication) {
+        this.authentication = authentication;
     }
 
     public Track getTrack() {
@@ -40,16 +33,13 @@ public class TrackSpeechlet {
         StringBuilder speechText = new StringBuilder();
 
         try {
+            SpotifyWebAPIService trackService = new NowPlayingAPIService();
             // Get currently playing track and append market for track relinking
-            String url = "https://api.spotify.com/v1/me/player/currently-playing" +
-                    ("".equals(SpotifyAuthentication.getMarket()) ? "" :
-                            "?market=" + SpotifyAuthentication.getMarket());
-            String trackStr = SpeechletUtils.getJsonResponse(url,
-                    SpotifyAuthentication.getAccessToken());
-            track = Track.createFromJSON(new JSONObject(trackStr));
+            String url = SpotifyWebAPIService.NOW_PLAYING_URL;
+            track = (Track)trackService.fetchItem(url, authentication);
             speechText.append(track.getFullDescription());
-        } catch (UsageLimitException ule) {
-            speechText.append(ule.getSpeechText());
+        } catch (SpeechException se) {
+            speechText.append(se.getSpeechText());
         } catch (Exception e) {
             speechText.append("Sorry, I can't find the currently playing track");
             log.error(e.getMessage());
@@ -61,12 +51,12 @@ public class TrackSpeechlet {
     public SpeechletResponse getTrackOriginalAlbumResponse() {
         StringBuilder speechText = new StringBuilder();
 
-        // Lookup the track id
         try {
             log.info("Lookup " + track.getId());
-            String trackStr = SpeechletUtils.getJsonResponse("https://api.spotify.com/v1/tracks/" + track.getId(),
-                    SpotifyAuthentication.getAccessToken());
-            Track originalTrack = Track.createFromItemJSON(new JSONObject(trackStr));
+            SpotifyWebAPIService trackService = new TrackAPIService();
+            Track originalTrack = (Track)trackService.fetchItem(
+                    SpotifyWebAPIService.TRACK_URL + track.getId(),
+                    authentication);
             if (originalTrack.getAlbumId().equals(track.getAlbumId())) {
                 speechText.append("This is the original album track.");
             } else {
@@ -78,8 +68,8 @@ public class TrackSpeechlet {
                 track.setOriginalAlbumUri(originalTrack.getAlbumUri());
                 track.setOriginalAlbumName(originalTrack.getAlbumName());
             }
-        } catch (UsageLimitException ule) {
-            speechText.append(ule.getSpeechText());
+        } catch (SpeechException se) {
+            speechText.append(se.getSpeechText());
         } catch (Exception e) {
             speechText.append("Sorry, I couldn't find any original track information");
             log.error(e.getMessage());
@@ -125,8 +115,8 @@ public class TrackSpeechlet {
             } else {
                 speechText.append("Sorry, I can't find any information about the track");
             }
-        } catch (UsageLimitException ule) {
-            speechText.append(ule.getSpeechText());
+        } catch (SpeechException se) {
+            speechText.append(se.getSpeechText());
         } catch (Exception e) {
             speechText.append("Sorry, I can't find the currently playing track");
             log.error(e.getMessage());
@@ -135,10 +125,9 @@ public class TrackSpeechlet {
         return SpeechletUtils.buildStandardAskResponse(speechText.toString(), true);
     }
 
-    private Album fetchAlbum(String id) throws SpeechException, JSONException, IOException {
-        String albumStr = SpeechletUtils.getJsonResponse("https://api.spotify.com/v1/albums/" + id,
-                SpotifyAuthentication.getAccessToken());
-        return Album.createFromJSON(new JSONObject(albumStr));
+    private Album fetchAlbum(String id) throws SpeechException {
+        SpotifyWebAPIService albumService = new AlbumAPIService();
+        return (Album)albumService.fetchItem(SpotifyWebAPIService.ALBUM_URL + id, authentication);
     }
 
     public SpeechletResponse getTrackTimeResponse() {
@@ -147,12 +136,13 @@ public class TrackSpeechlet {
         // Get currently playing track
         try {
             // Re-fetch track to get latest progress
-            String trackStr = SpeechletUtils.getJsonResponse("https://api.spotify.com/v1/me/player",
-                    SpotifyAuthentication.getAccessToken());
-            track = Track.createFromJSON(new JSONObject(trackStr));
+            SpotifyWebAPIService trackService = new NowPlayingAPIService();
+            track = (Track)trackService.fetchItem(
+                    SpotifyWebAPIService.TRACK_PROGRESS_URL,
+                    authentication);
             speechText.append(track.getProgressDurationString());
-        } catch (UsageLimitException ule) {
-            speechText.append(ule.getSpeechText());
+        } catch (SpeechException se) {
+            speechText.append(se.getSpeechText());
         } catch (Exception e) {
             speechText.append("Sorry, I can't find the currently playing track");
             log.error(e.getMessage());

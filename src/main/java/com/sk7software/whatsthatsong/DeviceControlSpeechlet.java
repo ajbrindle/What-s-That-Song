@@ -2,55 +2,45 @@ package com.sk7software.whatsthatsong;
 
 import com.amazon.speech.slu.Intent;
 import com.amazon.speech.speechlet.SpeechletResponse;
-import com.amazonaws.util.json.JSONObject;
 import com.sk7software.whatsthatsong.exception.SpeechException;
-import com.sk7software.whatsthatsong.exception.UsageLimitException;
 import com.sk7software.whatsthatsong.model.AvailableDevices;
 import com.sk7software.whatsthatsong.model.Device;
+import com.sk7software.whatsthatsong.model.Track;
+import com.sk7software.whatsthatsong.network.DevicesAPIService;
+import com.sk7software.whatsthatsong.network.SpotifyPlayerAPIService;
+import com.sk7software.whatsthatsong.network.SpotifyWebAPIService;
+import com.sk7software.whatsthatsong.util.PlayerAction;
 import com.sk7software.whatsthatsong.util.SpeechSlot;
 import com.sk7software.whatsthatsong.util.SpeechletUtils;
 import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
-import com.sun.prism.Texture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.sk7software.whatsthatsong.util.SpeechletUtils.RESPONSE_DONE;
-import static com.sk7software.whatsthatsong.util.SpeechletUtils.RESPONSE_RETRY;
-import static com.sk7software.whatsthatsong.util.SpeechletUtils.buildStandardAskResponse;
+import static com.sk7software.whatsthatsong.util.SpeechletUtils.*;
 
 public class DeviceControlSpeechlet {
     private static final Logger log = LoggerFactory.getLogger(DeviceControlSpeechlet.class);
 
     private AvailableDevices devices;
+    private SpotifyAuthentication authentication;
+    private SpotifyPlayerAPIService playerService;
 
-    private static DeviceControlSpeechlet instance = null;
-
-    private DeviceControlSpeechlet() {
+    public DeviceControlSpeechlet(SpotifyAuthentication authentication) {
+        this.authentication = authentication;
         this.devices = new AvailableDevices();
-    }
-
-    public static synchronized DeviceControlSpeechlet getInstance() {
-        if (instance == null) {
-            instance = new DeviceControlSpeechlet();
-        }
-        return instance;
+        this.playerService = new SpotifyPlayerAPIService();
     }
 
     public SpeechletResponse getDevicesResponse(boolean list) {
         String speechText;
 
         try {
-            String devicesStr = SpeechletUtils.getJsonResponse("https://api.spotify.com/v1/me/player/devices",
-                    SpotifyAuthentication.getAccessToken());
-            log.info(devicesStr);
-            devices = AvailableDevices.createFromJSON(new JSONObject(devicesStr));
+            SpotifyWebAPIService devicesService = new DevicesAPIService();
+            devices = (AvailableDevices)devicesService.fetchItem(SpotifyWebAPIService.DEVICES_URL, authentication);
             speechText = devices.getDeviceList(list);
-        } catch (UsageLimitException ule) {
-            speechText = ule.getSpeechText();
-            log.error(ule.getMessage());
         } catch (SpeechException se) {
             speechText = se.getSpeechText();
             log.error(se.getMessage());
@@ -105,23 +95,12 @@ public class DeviceControlSpeechlet {
             Map<String, Object> param = new HashMap<>();
             param.put("device_ids", new String[]{id});
 
-            int responseCode = PlayerControlSpeechlet.getInstance()
-                    .sendPlayerCommand(
-                            "https://api.spotify.com/v1/me/player",
-                            "PUT", param);
-
-            if (responseCode == RESPONSE_RETRY) {
-                speechText.append("Sorry, that didn't work.  Please try again.");
-            } else if (responseCode != RESPONSE_DONE) {
-                speechText.append("Sorry, I'm unable to complete that action.");
-            } else {
-                devices.setActiveDevice(id);
-                speechText.append("Playing on ").append(devices.getActiveDevice().getName());
-            }
-
+            playerService.sendPlayerCommand(SpotifyPlayerAPIService.PLAYER_URL, "PUT", param, authentication);
+            devices.setActiveDevice(id);
+            speechText.append("Playing on ").append(devices.getActiveDevice().getName());
             return speechText.toString();
-        } catch (UsageLimitException ule) {
-            return ule.getSpeechText();
+        } catch (SpeechException se) {
+            return se.getSpeechText();
         }
     }
 
@@ -176,52 +155,28 @@ public class DeviceControlSpeechlet {
 
         log.info("Changing volume from " + oldVolume + " to " + newVolume);
 
-        volumeURL = "https://api.spotify.com/v1/me/player/volume?volume_percent=" + String.valueOf(newVolume);
+        volumeURL = SpotifyPlayerAPIService.VOLUME_URL + String.valueOf(newVolume);
 
         try {
-            int responseCode = PlayerControlSpeechlet.getInstance().sendPlayerCommand(
-                    volumeURL.toString(),
-                    "PUT", null);
+            playerService.sendPlayerCommand(volumeURL, "PUT", null, authentication);
+            device.setVolumePercent(newVolume);
+            device.setOldVolumePercent(oldVolume);
 
-            if (responseCode == RESPONSE_RETRY) {
-                // Can retry twice, 5 seconds apart
-                for (int i = 0; i < 2; i++) {
-                    try {
-                        Thread.sleep(5000);
-                        responseCode = PlayerControlSpeechlet.getInstance().sendPlayerCommand(
-                                volumeURL.toString(),
-                                "PUT", null);
-                        if (responseCode != RESPONSE_RETRY) {
-                            break;
-                        }
-                    } catch (InterruptedException e) {
-                    }
-                }
-            }
-
-            if (responseCode != RESPONSE_DONE) {
-                speechText.append("Sorry, I'm unable to complete that action.");
+            if (newVolume == 0) {
+                speechText.append("Muted");
+            } else if (oldVolume == 0) {
+                speechText.append("Unmuted");
             } else {
-                device.setVolumePercent(newVolume);
-                device.setOldVolumePercent(oldVolume);
-
-                if (newVolume == 0) {
-                    speechText.append("Muted");
-                } else if (oldVolume == 0) {
-                    speechText.append("Unmuted");
-                } else {
-                    speechText.append("Volume ");
-                    speechText.append(newVolume < oldVolume ? "down" : "up");
+                speechText.append("Volume ");
+                speechText.append(newVolume < oldVolume ? "down" : "up");
 //                    speechText.append(" from ");
 //                    speechText.append(oldVolume);
 //                    speechText.append(" to ");
 //                    speechText.append(newVolume);
-                }
             }
-
             return speechText.toString();
-        } catch (UsageLimitException ule) {
-            return ule.getSpeechText();
+        } catch (SpeechException se) {
+            return se.getSpeechText();
         }
     }
 
@@ -240,4 +195,77 @@ public class DeviceControlSpeechlet {
 
         return buildStandardAskResponse(speechText, false);
     }
+
+    public SpeechletResponse playerControl(PlayerAction action, Track track) {
+        StringBuilder speechText = new StringBuilder();
+
+        try {
+            String spotifyURL;
+            String method;
+            Map<String, Object> postParams = new HashMap<>();
+            Map<String, Object> position = new HashMap<>();
+
+            switch (action) {
+                case SKIP:
+                    spotifyURL = SpotifyPlayerAPIService.SKIP_URL;
+                    method = "POST";
+                    speechText.append("Skipped");
+                    break;
+                case RESTART:
+                    spotifyURL = SpotifyPlayerAPIService.RESTART_URL;
+                    method = "PUT";
+                    speechText.append("Restarted");
+                    break;
+                case PAUSE:
+                    spotifyURL = SpotifyPlayerAPIService.PAUSE_URL;
+                    method = "PUT";
+                    speechText.append("Paused");
+                    break;
+                case RESUME:
+                    spotifyURL = SpotifyPlayerAPIService.RESUME_URL;
+                    method = "PUT";
+                    speechText.append("Resumed");
+                    break;
+                case PLAY_ALBUM:
+                    spotifyURL = SpotifyPlayerAPIService.PLAY_ALBUM_URL;
+                    method = "PUT";
+                    postParams.put("context_uri", track.getAlbumUri());
+                    position.put("position", 0);
+                    postParams.put("offset", position);
+                    speechText.append("Playing ");
+                    speechText.append(track.getAlbumName());
+                    break;
+                case PLAY_ORIGINAL_ALBUM:
+                    spotifyURL = SpotifyPlayerAPIService.PLAY_ORIGINAL_ALBUM_URL;
+                    if (track.hasOriginalAlbum()) {
+                        method = "PUT";
+                        postParams.put("context_uri", track.getOriginalAlbumUri());
+                        position.put("position", 0);
+                        postParams.put("offset", position);
+                        speechText.append("Playing ");
+                        speechText.append(track.getOriginalAlbumName());
+                    } else {
+                        speechText.append("Please ask if this track has an original album first");
+                        return SpeechletUtils.buildStandardAskResponse(speechText.toString(), false);
+                    }
+                    break;
+                default:
+                    // Never happens as actions are controlled by speechlet
+                    throw new Exception("Invalid action");
+            }
+
+            SpotifyPlayerAPIService playerService = new SpotifyPlayerAPIService();
+            playerService.sendPlayerCommand(spotifyURL, method, postParams, authentication);
+        } catch (SpeechException se) {
+            speechText.delete(0, speechText.length());
+            speechText.append(se.getSpeechText());
+        } catch (Exception e) {
+            speechText.delete(0, speechText.length());
+            speechText.append("An error has occurred");
+            log.error(e.getMessage());
+        }
+
+        return SpeechletUtils.buildStandardAskResponse(speechText.toString(), false);
+    }
+
 }
