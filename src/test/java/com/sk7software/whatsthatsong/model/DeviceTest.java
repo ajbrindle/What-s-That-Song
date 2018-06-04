@@ -150,7 +150,6 @@ public class DeviceTest {
 
     @Test
     public void testCalcNameMatchScoreNone() {
-        System.out.println("calcNameMatchScore");
         String spokenName = "Echo Dot Speaker";
         Device d = new Device();
         d.setName("LG G6");

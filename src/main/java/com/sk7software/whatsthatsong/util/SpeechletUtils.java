@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 public class SpeechletUtils {
     private static final Logger log = LoggerFactory.getLogger(SpeechletUtils.class);
@@ -18,11 +19,11 @@ public class SpeechletUtils {
         log.debug("Building response");
         if (doCard) {
             // Create the Simple card content.
-            return new ResponseBuilder().withSpeech(response)
+            return new ResponseBuilder().withSpeech(StringEscapeUtils.escapeHtml4(response))
                     .withReprompt(REPROMPT_TEXT)
                     .withSimpleCard("What's That Song", response);
         } else {
-            return new ResponseBuilder().withSpeech(response)
+            return new ResponseBuilder().withSpeech(StringEscapeUtils.escapeHtml4(response))
                     .withReprompt(REPROMPT_TEXT);
         }
     }
@@ -33,8 +34,10 @@ public class SpeechletUtils {
         artwork.add(ImageInstance.builder().withUrl(track.getArtworkUrl()).build());
         return BodyTemplate2.builder()
                 .withTextContent(TextContent.builder()
-                        .withPrimaryText(PlainText.builder().withText(track.getName()).build())
-                        .withSecondaryText(PlainText.builder().withText(track.getArtistName()).build())
+                        .withPrimaryText(RichText.builder().withText(track.getName()).build())
+                        .withSecondaryText(RichText.builder()
+                                .withText("<font size=\"2\">" + track.getArtistName() + "</font>")
+                                .build())
                         .build())
                 .withBackgroundImage(Image.builder()
                         .withSources(artwork)
