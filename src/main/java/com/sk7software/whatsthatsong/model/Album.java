@@ -7,16 +7,18 @@
 package com.sk7software.whatsthatsong.model;
 
 import com.amazonaws.util.json.JSONObject;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.io.Serializable;
 
 /**
  *
  * @author Andrew
  */
-public class Album {
+public class Album implements Serializable {
     private String name;
     private String uri;
     private String id;
@@ -28,6 +30,10 @@ public class Album {
 
     @JsonProperty("release_date_precision")
     private String releaseDatePrecision;
+
+    @JsonProperty("images")
+    private AlbumArt[] covers;
+
 
     public Album() {
     }
@@ -88,6 +94,7 @@ public class Album {
         this.releaseDatePrecision = releaseDatePrecision;
     }
 
+    @JsonIgnore
     private String getReleaseYear() {
         if (releaseDate.length() >= 4) {
             return releaseDate.substring(0, 4);
@@ -95,7 +102,7 @@ public class Album {
             return "Unknown";
         }
     }
-    public String getAlbumInfo() {
+    public String buildAlbumInfo() {
         StringBuilder info = new StringBuilder();
         info.append("It was released in ");
         info.append(getReleaseYear());
@@ -118,6 +125,7 @@ public class Album {
         this.artists = artists;
     }
 
+    @JsonIgnore
     public String getArtistName() {
         if (getArtists().length > 0) {
             return getArtists()[0].getName();
@@ -126,6 +134,7 @@ public class Album {
         }
     }
 
+    @JsonIgnore
     public String getFullAlbumDescription() {
         StringBuilder description = new StringBuilder();
         description.append(getName());
@@ -134,7 +143,36 @@ public class Album {
         return description.toString();
     }
 
-    public class TrackPage {
+    public AlbumArt[] getCovers() {
+        return covers;
+    }
+
+    public void setCovers(AlbumArt[] covers) {
+        this.covers = covers;
+    }
+
+    @JsonIgnore
+    public String getAlbumArtUrl() {
+        if (covers == null || covers.length == 0) {
+            return "";
+        } else {
+            // Find biggest image
+            int maxArea = 0;
+            int maxIndex = 0;
+            int index = 0;
+            for (AlbumArt aa : covers) {
+                int area = aa.getWidth() * aa.getHeight();
+                if (area > maxArea) {
+                    maxArea = area;
+                    maxIndex = index;
+                }
+                index++;
+            }
+            return covers[maxIndex].getUrl();
+        }
+    }
+
+    public class TrackPage implements Serializable {
         private int total;
 
         public int getTotal() {

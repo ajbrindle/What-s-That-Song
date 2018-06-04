@@ -2,12 +2,15 @@ package com.sk7software.whatsthatsong.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class TrackItem {
+import java.io.Serializable;
+
+public class TrackItem implements Serializable {
     private String name;
     private Artist[] artists;
     private Album album;
-
     private String id;
     private boolean explicit;
 
@@ -25,7 +28,7 @@ public class TrackItem {
         this.name = name;
     }
 
-    Artist[] getArtists() {
+    public Artist[] getArtists() {
         return artists;
     }
 
@@ -33,7 +36,7 @@ public class TrackItem {
         this.artists = artists;
     }
 
-    Album getAlbum() {
+    public Album getAlbum() {
         return album;
     }
 
@@ -74,6 +77,14 @@ public class TrackItem {
 
         public void setId(String id) {
             this.id = id;
+        }
+    }
+
+    public String toString() {
+        try {
+            return new ObjectMapper().writeValueAsString(this);
+        } catch (JsonProcessingException je) {
+            return "Track: " + getName();
         }
     }
 }

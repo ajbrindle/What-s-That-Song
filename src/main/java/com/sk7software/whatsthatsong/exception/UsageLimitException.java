@@ -1,7 +1,5 @@
 package com.sk7software.whatsthatsong.exception;
 
-import com.amazon.speech.speechlet.SpeechletResponse;
-
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;

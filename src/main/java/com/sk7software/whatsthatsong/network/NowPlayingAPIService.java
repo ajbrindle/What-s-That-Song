@@ -19,6 +19,7 @@ public class NowPlayingAPIService extends SpotifyWebAPIService {
             String nowPlayingUrl = url +
                     ("".equals(authentication.getMarket()) ? "" :
                             "?market=" + authentication.getMarket());
+            log.debug("Auth token: " + authentication.getAccessToken());
             String trackStr = getJsonResponse(nowPlayingUrl, authentication.getAccessToken());
 
             Track track = Track.createFromJSON(new JSONObject(trackStr));

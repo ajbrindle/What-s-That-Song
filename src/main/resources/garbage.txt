@@ -1,3 +1,0 @@
-{
-    This isn't real JSON
-}

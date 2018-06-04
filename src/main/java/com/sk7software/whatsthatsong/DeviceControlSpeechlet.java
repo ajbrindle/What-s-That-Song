@@ -1,7 +1,7 @@
 package com.sk7software.whatsthatsong;
 
-import com.amazon.speech.slu.Intent;
-import com.amazon.speech.speechlet.SpeechletResponse;
+import com.amazon.ask.model.Intent;
+import com.amazon.ask.model.Response;
 import com.sk7software.whatsthatsong.exception.SpeechException;
 import com.sk7software.whatsthatsong.model.AvailableDevices;
 import com.sk7software.whatsthatsong.model.Device;
@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.sk7software.whatsthatsong.util.SpeechletUtils.*;
 
@@ -34,7 +35,7 @@ public class DeviceControlSpeechlet {
         this.playerService = new SpotifyPlayerAPIService();
     }
 
-    public SpeechletResponse getDevicesResponse(boolean list) {
+    public Optional<Response> getDevicesResponse(boolean list) {
         String speechText;
 
         try {
@@ -49,13 +50,13 @@ public class DeviceControlSpeechlet {
             log.error(e.getMessage());
         }
 
-        return buildStandardAskResponse(speechText, true);
+        return buildStandardAskResponse(speechText, true).build();
     }
 
     /*
      * Transfers play to the requested device id
      */
-    public SpeechletResponse getDevicePlayResponse(Intent intent) {
+    public Optional<Response> getDevicePlayResponse(Intent intent) {
         String speechText;
 
         try {
@@ -70,10 +71,10 @@ public class DeviceControlSpeechlet {
             speechText = se.getSpeechText();
         }
 
-        return buildStandardAskResponse(speechText, true);
+        return buildStandardAskResponse(speechText, true).build();
     }
 
-    public SpeechletResponse getDevicePlayByNameResponse(Intent intent) {
+    public Optional<Response> getDevicePlayByNameResponse(Intent intent) {
         String speechText;
         String spokenName = SpeechSlot.getStringSlotValue(intent, SpeechSlot.DEVICE_NAME);
 
@@ -86,7 +87,7 @@ public class DeviceControlSpeechlet {
             speechText = se.getSpeechText();
         }
 
-        return buildStandardAskResponse(speechText, true);
+        return buildStandardAskResponse(speechText, true).build();
     }
 
     private String playOnDevice(String id) {
@@ -104,7 +105,7 @@ public class DeviceControlSpeechlet {
         }
     }
 
-    public SpeechletResponse getDeviceVolumeResponse(Intent intent) {
+    public Optional<Response> getDeviceVolumeResponse(Intent intent) {
         String speechText;
         String direction = SpeechSlot.getStringSlotValue(intent, SpeechSlot.VOLUME_DIRECTION);
         int amount = SpeechSlot.getIntSlotValue(intent, SpeechSlot.VOLUME_AMOUNT);
@@ -130,10 +131,10 @@ public class DeviceControlSpeechlet {
             speechText = "Sorry, I can't find the active device";
         }
 
-        return buildStandardAskResponse(speechText, false);
+        return buildStandardAskResponse(speechText, false).build();
     }
 
-    public SpeechletResponse getDeviceMuteResponse() {
+    public Optional<Response> getDeviceMuteResponse() {
         String speechText;
 
         // Find the current active device
@@ -146,7 +147,7 @@ public class DeviceControlSpeechlet {
             speechText = "Sorry, I can't find the active device";
         }
 
-        return buildStandardAskResponse(speechText, false);
+        return buildStandardAskResponse(speechText, false).build();
     }
 
     private String setDeviceVolume(Device device, int newVolume, int oldVolume) {
@@ -180,7 +181,7 @@ public class DeviceControlSpeechlet {
         }
     }
 
-    public SpeechletResponse getDeviceUnmuteResponse() {
+    public Optional<Response> getDeviceUnmuteResponse() {
         String speechText;
 
         // Find the current active device
@@ -193,10 +194,10 @@ public class DeviceControlSpeechlet {
             speechText = "Sorry, I can't find the active device";
         }
 
-        return buildStandardAskResponse(speechText, false);
+        return buildStandardAskResponse(speechText, false).build();
     }
 
-    public SpeechletResponse playerControl(PlayerAction action, Track track) {
+    public Optional<Response> playerControl(PlayerAction action, Track track) {
         StringBuilder speechText = new StringBuilder();
 
         try {
@@ -246,7 +247,7 @@ public class DeviceControlSpeechlet {
                         speechText.append(track.getOriginalAlbumName());
                     } else {
                         speechText.append("Please ask if this track has an original album first");
-                        return SpeechletUtils.buildStandardAskResponse(speechText.toString(), false);
+                        return SpeechletUtils.buildStandardAskResponse(speechText.toString(), false).build();
                     }
                     break;
                 default:
@@ -265,7 +266,7 @@ public class DeviceControlSpeechlet {
             log.error(e.getMessage());
         }
 
-        return SpeechletUtils.buildStandardAskResponse(speechText.toString(), false);
+        return SpeechletUtils.buildStandardAskResponse(speechText.toString(), false).build();
     }
 
 }

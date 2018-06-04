@@ -6,40 +6,26 @@
 
 package com.sk7software.whatsthatsong;
 
-import com.amazon.speech.slu.Intent;
-import com.amazon.speech.speechlet.IntentRequest;
-import com.amazon.speech.speechlet.LaunchRequest;
-import com.amazon.speech.speechlet.Session;
-import com.amazon.speech.speechlet.SessionEndedRequest;
-import com.amazon.speech.speechlet.SessionStartedRequest;
-import com.amazon.speech.speechlet.Speechlet;
-import com.amazon.speech.speechlet.SpeechletException;
-import com.amazon.speech.speechlet.SpeechletResponse;
-import com.amazon.speech.ui.PlainTextOutputSpeech;
-import com.amazon.speech.ui.Reprompt;
-
-import com.sk7software.whatsthatsong.util.PlayerAction;
-import com.sk7software.whatsthatsong.util.SpeechletUtils;
-import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Andrew
  */
-public class WhatsThatSongSpeechlet implements Speechlet {
+public class WhatsThatSongSpeechlet {
+/*
     private static final Logger log = LoggerFactory.getLogger(WhatsThatSongSpeechlet.class);
 
     private SpotifyAuthentication authentication = new SpotifyAuthentication();
     private DeviceControlSpeechlet deviceControlSpeechlet;
-    private TrackSpeechlet trackSpeechlet;
+    private TrackHandler trackSpeechlet;
+    private boolean initialised = false;
 
     @Override
     public void onSessionStarted(final SessionStartedRequest request, final Session session)
             throws SpeechletException {
         log.info("onSessionStarted requestId={}, sessionId={}", request.getRequestId(),
                 session.getSessionId());
+        initialise(session);
     }
 
     @Override
@@ -47,13 +33,8 @@ public class WhatsThatSongSpeechlet implements Speechlet {
             throws SpeechletException {
         log.info("onLaunch requestId={}, sessionId={}", request.getRequestId(),
                 session.getSessionId());
-
-        authentication.setAccessToken(session.getUser().getAccessToken());
-        log.info("Access token: " + session.getUser().getAccessToken());
-
-        trackSpeechlet = new TrackSpeechlet(authentication);
-        deviceControlSpeechlet = new DeviceControlSpeechlet(authentication);
-        return trackSpeechlet.getNowPlayingResponse();
+        initialise(session);
+        return null; //trackSpeechlet.getNowPlayingResponse();
     }
 
     @Override
@@ -66,7 +47,7 @@ public class WhatsThatSongSpeechlet implements Speechlet {
 
         Intent intent = request.getIntent();
         String intentName = (intent != null) ? intent.getName() : "Invalid";
-        
+
         switch (intentName) {
             case "WhatsThatSongIntent":
                 return trackSpeechlet.getNowPlayingResponse();
@@ -111,6 +92,8 @@ public class WhatsThatSongSpeechlet implements Speechlet {
             default:
                 throw new SpeechletException("Invalid Intent");
         }
+
+        return null;
     }
 
     @Override
@@ -122,12 +105,6 @@ public class WhatsThatSongSpeechlet implements Speechlet {
 
 
 
-
-    /**
-     * Creates a {@code SpeechletResponse} for the help intent.
-     *
-     * @return SpeechletResponse spoken and visual response for the given intent
-     */
     private SpeechletResponse getHelpResponse() {
         StringBuilder helpText = new StringBuilder();
         helpText.append("You can ask to skip or restart the song by saying, ");
@@ -164,4 +141,15 @@ public class WhatsThatSongSpeechlet implements Speechlet {
         
         return stopResponse;
     }
+
+    private void initialise(Session session) {
+//        if (!initialised) {
+//            authentication.setAccessToken(session.getUser().getAccessToken());
+//            log.info("Access token: " + session.getUser().getAccessToken());
+//            trackSpeechlet = new TrackHandler(authentication);
+//            deviceControlSpeechlet = new DeviceControlSpeechlet(authentication);
+//            initialised = true;
+//        }
+    }
+    */
 }

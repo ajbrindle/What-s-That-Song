@@ -1,7 +1,7 @@
 package com.sk7software.whatsthatsong.util;
 
-import com.amazon.speech.slu.Intent;
-import com.amazon.speech.slu.Slot;
+import com.amazon.ask.model.Intent;
+import com.amazon.ask.model.Slot;
 
 public class SpeechSlot {
 
@@ -11,7 +11,7 @@ public class SpeechSlot {
     public static final String VOLUME_DIRECTION = "volumeDirection";
 
     public static String getStringSlotValue(Intent intent, String slotName) {
-        Slot slot = intent.getSlot(slotName);
+        Slot slot = intent.getSlots().get(slotName);
         if (slot != null && slot.getValue() != null) {
             return slot.getValue();
         }
@@ -20,7 +20,7 @@ public class SpeechSlot {
     }
 
     public static int getIntSlotValue(Intent intent, String slotName) throws NumberFormatException {
-        Slot slot = intent.getSlot(slotName);
+        Slot slot = intent.getSlots().get(slotName);
         if (slot != null && slot.getValue() != null) {
             return Integer.parseInt(slot.getValue());
         } else {

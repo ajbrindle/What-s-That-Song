@@ -6,15 +6,9 @@
 
 package com.sk7software.whatsthatsong.model;
 
-import com.amazonaws.util.json.JSONException;
-import com.amazonaws.util.json.JSONObject;
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.sk7software.whatsthatsong.exception.SpotifyWebAPIException;
 import com.sk7software.whatsthatsong.network.AlbumAPIService;
-import com.sk7software.whatsthatsong.network.NowPlayingAPIService;
 import com.sk7software.whatsthatsong.network.SpotifyWebAPIService;
 import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
 import org.junit.*;
@@ -99,7 +93,7 @@ public class AlbumTest {
     }
 
     /**
-     * Test of getAlbumInfo method, of class Album.
+     * Test of buildAlbumInfo method, of class Album.
      */
     @Test
     public void testGetAlbumInfo() throws Exception {
@@ -111,7 +105,7 @@ public class AlbumTest {
                         .withBodyFile("album.json")));
 
         Album result = (Album)service.fetchItem("http://localhost:8089/album", auth);
-        assertEquals("It was released in 1983 and contains 13 tracks", result.getAlbumInfo());
+        assertEquals("It was released in 1983 and contains 13 tracks", result.buildAlbumInfo());
     }
 
     @Test
@@ -124,6 +118,6 @@ public class AlbumTest {
                         .withBodyFile("album2.json")));
 
         Album result = (Album)service.fetchItem("http://localhost:8089/album", auth);
-        assertEquals("It was released in 2010 and contains 1 track", result.getAlbumInfo());
+        assertEquals("It was released in 2010 and contains 1 track", result.buildAlbumInfo());
     }
 }

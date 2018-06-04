@@ -1,5 +1,6 @@
 package com.sk7software.whatsthatsong.util;
 
+import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazonaws.util.json.JSONObject;
 import com.sk7software.whatsthatsong.exception.SpeechException;
 import com.sk7software.whatsthatsong.exception.SpotifyAuthenticationException;
@@ -17,6 +18,23 @@ public class SpotifyAuthentication {
     public SpotifyAuthentication() {
     }
 
+    public SpotifyAuthentication(HandlerInput handlerInput) {
+        accessToken = handlerInput.getRequestEnvelope()
+                .getContext()
+                .getSystem()
+                .getUser()
+                .getAccessToken();
+
+        if (handlerInput.getAttributesManager().getSessionAttributes().containsKey("market")) {
+            log.debug("Found market");
+            market = (String)handlerInput.getAttributesManager().getSessionAttributes().get("market");
+        } else {
+            log.debug("No market found");
+            lookupMarket();
+            handlerInput.getAttributesManager().getSessionAttributes().put("market", market);
+        }
+    }
+
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
     }
@@ -30,6 +48,10 @@ public class SpotifyAuthentication {
     }
 
     public String getMarket() {
+        return market;
+    }
+
+    public void lookupMarket() {
         if (market == null || "".equals(market)) {
             try {
                 SpotifyWebAPIService userService = new UserAPIService();
@@ -40,7 +62,6 @@ public class SpotifyAuthentication {
                 market = "";
             }
         }
-
-        return market;
     }
+
 }

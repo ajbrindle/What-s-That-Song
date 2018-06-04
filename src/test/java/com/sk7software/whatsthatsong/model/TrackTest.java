@@ -6,13 +6,7 @@
 
 package com.sk7software.whatsthatsong.model;
 
-import com.amazonaws.util.json.JSONException;
-import com.amazonaws.util.json.JSONObject;
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.sk7software.whatsthatsong.exception.SpeechException;
 import com.sk7software.whatsthatsong.exception.SpotifyWebAPIException;
 import com.sk7software.whatsthatsong.network.NowPlayingAPIService;
 import com.sk7software.whatsthatsong.network.SpotifyWebAPIService;
@@ -80,6 +74,7 @@ public class TrackTest {
         assertFalse(result.isExplicit());
         assertEquals(44272, result.getProgress());
         assertEquals(10032000, result.getDuration());
+        assertEquals("https://i.scdn.co/image/8e13218039f81b000553e25522a7f0d7a0600f2e", result.getArtworkUrl());
         assertNotNull(result.getAlbum());
     }
 
@@ -151,7 +146,6 @@ public class TrackTest {
      */
     @Test
     public void testGetTimeString() {
-        System.out.println("getTimeString");
         int millis = 5278145;
         Track instance = new Track();
         String result = instance.getTimeString(millis);
@@ -160,7 +154,6 @@ public class TrackTest {
 
     @Test
     public void testGetTimeStringZeroHours() {
-        System.out.println("getTimeString");
         int millis = 1080000;
         Track instance = new Track();
         String result = instance.getTimeString(millis);
@@ -169,7 +162,6 @@ public class TrackTest {
 
     @Test
     public void testGetTimeStringOneMinute() {
-        System.out.println("getTimeString");
         int millis = 65987;
         Track instance = new Track();
         String result = instance.getTimeString(millis);
@@ -178,7 +170,6 @@ public class TrackTest {
     
     @org.junit.Test
     public void testGetTimeStringZero() {
-        System.out.println("getTimeString");
         int millis = 0;
         Track instance = new Track();
         String result = instance.getTimeString(millis);
@@ -187,7 +178,6 @@ public class TrackTest {
 
     @org.junit.Test
     public void testGetTimeStringOneSecond() {
-        System.out.println("getTimeString");
         int millis = 121000;
         Track instance = new Track();
         String result = instance.getTimeString(millis);

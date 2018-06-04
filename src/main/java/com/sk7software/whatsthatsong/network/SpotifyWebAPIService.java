@@ -47,6 +47,7 @@ public abstract class SpotifyWebAPIService {
             String line;
             URL url = new URL(requestURL);
             HttpURLConnection con = makeRequest(url, accessToken);
+            log.debug("Response code: " + con.getResponseCode());
 
             if (con.getResponseCode() == RESPONSE_RETRY) {
                 // Can retry twice, 5 seconds apart

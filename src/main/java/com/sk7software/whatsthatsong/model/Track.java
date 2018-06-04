@@ -13,12 +13,13 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Andrew on 24/07/2017.
  */
-public class Track {
+public class Track implements Serializable {
     private TrackItem item;
     @JsonProperty("progress_ms")
     private int progress;
@@ -59,27 +60,33 @@ public class Track {
         this.item = item;
     }
 
+    @JsonIgnore
     public String getName() {
         return item.getName();
     }
 
     // Don't expose artist array outside of object
+    @JsonIgnore
     private Artist[] getArtists() {
         return item.getArtists();
     }
 
+    @JsonIgnore
     public Album getAlbum() {
         return item.getAlbum();
     }
 
+    @JsonIgnore
     public String getId() {
         return item.getId();
     }
 
+    @JsonIgnore
     public boolean isExplicit() {
         return item.isExplicit();
     }
 
+    @JsonIgnore
     public int getProgress() {
         return progress;
     }
@@ -88,10 +95,12 @@ public class Track {
         this.progress = progress;
     }
 
+    @JsonIgnore
     public int getDuration() {
         return item.getDuration();
     }
 
+    @JsonIgnore
     public String getArtistName() {
         if (item.getArtists().length > 0) {
             return item.getArtists()[0].getName();
@@ -100,16 +109,20 @@ public class Track {
         }
     }
 
+    @JsonIgnore
     public String getAlbumName() {
         return item.getAlbum().getName();
     }
 
+    @JsonIgnore
     public String getAlbumArtist() { return item.getAlbum().getArtistName(); }
 
+    @JsonIgnore
     public String getAlbumUri() {
         return item.getAlbum().getUri();
     }
-    
+
+    @JsonIgnore
     public String getAlbumId() {
         return item.getAlbum().getId();
     }
@@ -134,6 +147,10 @@ public class Track {
         return (originalAlbumUri != null && !"".equals(originalAlbumUri));
     }
 
+    @JsonIgnore
+    public String getArtworkUrl() { return item.getAlbum().getAlbumArtUrl(); }
+
+    @JsonIgnore
     public String getFullDescription() {
         StringBuilder description = new StringBuilder();
         description.append("This song is ");
@@ -143,6 +160,7 @@ public class Track {
         return description.toString();
     }
 
+    @JsonIgnore
     public String getProgressDurationString() {
         StringBuilder info = new StringBuilder();
         info.append("The track is ");
@@ -153,6 +171,7 @@ public class Track {
         return info.toString();
     }
 
+    @JsonIgnore
     public String getFullAlbumDescription() {
         StringBuilder description = new StringBuilder();
         description.append(getAlbumName());
@@ -160,7 +179,8 @@ public class Track {
         description.append(getAlbumArtist());
         return description.toString();
     }
-    
+
+    @JsonIgnore
     public String getTimeString(int millis) {
         long hours = TimeUnit.MILLISECONDS.toHours(millis);
         millis -= TimeUnit.HOURS.toMillis(hours);

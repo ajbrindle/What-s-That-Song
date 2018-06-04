@@ -6,11 +6,13 @@
 
 package com.sk7software.whatsthatsong.model;
 
+import java.io.Serializable;
+
 /**
  *
  * @author Andrew
  */
-public class Artist {
+public class Artist implements Serializable {
     private String name;
 
     public Artist() {
