@@ -1,7 +1,10 @@
-package com.sk7software.whatsthatsong;
+package com.sk7software.whatsthatsong.handler;
 
+import com.amazon.ask.dispatcher.request.handler.HandlerInput;
+import com.amazon.ask.dispatcher.request.handler.RequestHandler;
 import com.amazon.ask.model.Intent;
 import com.amazon.ask.model.Response;
+import com.amazon.ask.response.ResponseBuilder;
 import com.sk7software.whatsthatsong.exception.SpeechException;
 import com.sk7software.whatsthatsong.model.AvailableDevices;
 import com.sk7software.whatsthatsong.model.Device;
@@ -20,27 +23,57 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.amazon.ask.request.Predicates.intentName;
 import static com.sk7software.whatsthatsong.util.SpeechletUtils.*;
 
-public class DeviceControlSpeechlet {
-    private static final Logger log = LoggerFactory.getLogger(DeviceControlSpeechlet.class);
+public class DeviceControlHandler implements RequestHandler {
+    private static final Logger log = LoggerFactory.getLogger(DeviceControlHandler.class);
+
 
     private AvailableDevices devices;
     private SpotifyAuthentication authentication;
     private SpotifyPlayerAPIService playerService;
 
-    public DeviceControlSpeechlet(SpotifyAuthentication authentication) {
-        this.authentication = authentication;
-        this.devices = new AvailableDevices();
-        this.playerService = new SpotifyPlayerAPIService();
+    @Override
+    public boolean canHandle(HandlerInput input) {
+        return input.matches(intentName("DeviceListIntent")) ||
+                input.matches(intentName("DeviceFetchIntent")) ||
+                input.matches(intentName("DevicePlayIntent")) ||
+                input.matches(intentName("DevicePlayByNameIntent")) ||
+                input.matches(intentName("DeviceVolumeIntent")) ||
+                input.matches(intentName("DeviceMuteIntent")) ||
+                input.matches(intentName("DeviceUnmuteIntent"));
     }
 
-    public Optional<Response> getDevicesResponse(boolean list) {
+    @Override
+    public Optional<Response> handle(HandlerInput handlerInput) {
+
+        if (handlerInput.matches(intentName("DeviceListIntent"))) {
+            return getDevicesResponse(handlerInput, true);
+        } else if (handlerInput.matches(intentName("DeviceFetchIntent"))) {
+            return getDevicesResponse(handlerInput, false);
+        } else if (handlerInput.matches(intentName("DevicePlayIntent"))) {
+            return new TrackHandler().getAlbumNameResponse(handlerInput);
+        } else if (handlerInput.matches(intentName("DevicePlayByNameIntent"))) {
+            return new TrackHandler().getTrackOriginalAlbumResponse(handlerInput);
+        } else if (handlerInput.matches(intentName("DeviceVolumeIntent"))) {
+            return new TrackHandler().getTrackTimeResponse(handlerInput);
+        } else if (handlerInput.matches(intentName("DeviceMuteIntent"))) {
+            return new TrackHandler().getTrackTimeResponse(handlerInput);
+        } else if (handlerInput.matches(intentName("DeviceUnmuteIntent"))) {
+            return new TrackHandler().getTrackTimeResponse(handlerInput);
+        } else {
+            return null;
+        }
+    }
+
+    public Optional<Response> getDevicesResponse(HandlerInput handlerInput, boolean list) {
         String speechText;
 
         try {
             SpotifyWebAPIService devicesService = new DevicesAPIService();
-            devices = (AvailableDevices)devicesService.fetchItem(SpotifyWebAPIService.DEVICES_URL, authentication);
+            devices = (AvailableDevices)devicesService.fetchItem(SpotifyWebAPIService.DEVICES_URL,
+                    new SpotifyAuthentication(handlerInput));
             speechText = devices.getDeviceList(list);
         } catch (SpeechException se) {
             speechText = se.getSpeechText();
@@ -50,7 +83,9 @@ public class DeviceControlSpeechlet {
             log.error(e.getMessage());
         }
 
-        return buildStandardAskResponse(speechText, true).build();
+        ResponseBuilder responseBuilder = SpeechletUtils.buildStandardAskResponse(speechText, true);
+        SpeechletUtils.addDeviceListDisplay(handlerInput, devices, responseBuilder);
+        return responseBuilder.build();
     }
 
     /*

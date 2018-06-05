@@ -11,9 +11,7 @@ import com.amazon.ask.dispatcher.exception.ExceptionHandler;
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.model.Response;
 import com.amazon.ask.response.ResponseBuilder;
-import com.sk7software.whatsthatsong.handler.CatchAllHandler;
-import com.sk7software.whatsthatsong.handler.LaunchRequestHandler;
-import com.sk7software.whatsthatsong.handler.WhatsThatSongIntentHandler;
+import com.sk7software.whatsthatsong.handler.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +31,9 @@ public class WhatsThatSongSpeechletRequestStreamHandler extends SkillStreamHandl
         return Skills.standard()
                 .addRequestHandlers(
                         new WhatsThatSongIntentHandler(),
+                        new DeviceControlHandler(),
                         new LaunchRequestHandler(),
+                        new DeviceSelectedHandler(),
                         new CatchAllHandler())
                 .addExceptionHandler(
                         new ExceptionHandler() {

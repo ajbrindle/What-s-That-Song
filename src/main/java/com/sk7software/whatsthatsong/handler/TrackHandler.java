@@ -1,17 +1,14 @@
-package com.sk7software.whatsthatsong;
+package com.sk7software.whatsthatsong.handler;
 
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.model.Response;
 import com.amazon.ask.response.ResponseBuilder;
-import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sk7software.whatsthatsong.exception.SpeechException;
 import com.sk7software.whatsthatsong.model.Album;
 import com.sk7software.whatsthatsong.model.Track;
 import com.sk7software.whatsthatsong.network.*;
-import com.sk7software.whatsthatsong.util.DeviceCapability;
 import com.sk7software.whatsthatsong.util.SpeechletUtils;
 import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
 import org.slf4j.Logger;
@@ -34,6 +31,7 @@ public class TrackHandler {
             String url = SpotifyWebAPIService.NOW_PLAYING_URL;
             track = (Track) trackService.fetchItem(url, new SpotifyAuthentication(handlerInput));
 
+            // Update session attributes
             if (track != null) {
                 ObjectMapper mapper = new ObjectMapper();
                 handlerInput.getAttributesManager().getSessionAttributes().put("item", mapper.convertValue(track.getItem(), Map.class));
@@ -46,15 +44,8 @@ public class TrackHandler {
             log.error(e.getMessage());
         }
 
-        DeviceCapability deviceCapability = new DeviceCapability(handlerInput);
-
         ResponseBuilder responseBuilder = SpeechletUtils.buildStandardAskResponse(speechText.toString(), true);
-
-        if (track != null && deviceCapability.hasDisplay()) {
-            log.debug("Device has display");
-            responseBuilder.addRenderTemplateDirective(SpeechletUtils.createDisplayTemplate(track));
-        }
-
+        SpeechletUtils.addTrackDisplay(handlerInput, track, responseBuilder);
         return responseBuilder.build();
     }
 
@@ -87,15 +78,8 @@ public class TrackHandler {
             log.error(e.getMessage());
         }
 
-        DeviceCapability deviceCapability = new DeviceCapability(handlerInput);
-
         ResponseBuilder responseBuilder = SpeechletUtils.buildStandardAskResponse(speechText.toString(), true);
-
-        if (originalTrack != null && deviceCapability.hasDisplay()) {
-            log.debug("Device has display");
-            responseBuilder.addRenderTemplateDirective(SpeechletUtils.createDisplayTemplate(originalTrack));
-        }
-
+        SpeechletUtils.addAlbumDisplay(handlerInput, originalTrack, responseBuilder);
         return responseBuilder.build();
     }
 
@@ -119,15 +103,8 @@ public class TrackHandler {
             log.error(e.getMessage());
         }
 
-        DeviceCapability deviceCapability = new DeviceCapability(handlerInput);
-
         ResponseBuilder responseBuilder = SpeechletUtils.buildStandardAskResponse(speechText.toString(), true);
-
-        if (track != null && deviceCapability.hasDisplay()) {
-            log.debug("Device has display");
-            responseBuilder.addRenderTemplateDirective(SpeechletUtils.createDisplayTemplate(track));
-        }
-
+        SpeechletUtils.addTrackDisplay(handlerInput, track, responseBuilder);
         return responseBuilder.build();
     }
 
@@ -138,8 +115,6 @@ public class TrackHandler {
         // Get currently playing track
         try {
             if (track != null) {
-                log.debug("Restored track: " + track.getItem().toString());
-
                 // Fetch the album
                 Album album = fetchAlbum(track.getAlbumId(), handlerInput);
                 speechText.append("This track is from the album ");
@@ -156,15 +131,8 @@ public class TrackHandler {
             log.error(e.getMessage());
         }
 
-        DeviceCapability deviceCapability = new DeviceCapability(handlerInput);
-
         ResponseBuilder responseBuilder = SpeechletUtils.buildStandardAskResponse(speechText.toString(), true);
-
-        if (track != null && deviceCapability.hasDisplay()) {
-            log.debug("Device has display");
-            responseBuilder.addRenderTemplateDirective(SpeechletUtils.createDisplayTemplate(track));
-        }
-
+        SpeechletUtils.addAlbumDisplay(handlerInput, track, responseBuilder);
         return responseBuilder.build();
     }
 
@@ -193,15 +161,8 @@ public class TrackHandler {
             log.error(e.getMessage());
         }
 
-        DeviceCapability deviceCapability = new DeviceCapability(handlerInput);
-
         ResponseBuilder responseBuilder = SpeechletUtils.buildStandardAskResponse(speechText.toString(), true);
-
-        if (track != null && deviceCapability.hasDisplay()) {
-            log.debug("Device has display");
-            responseBuilder.addRenderTemplateDirective(SpeechletUtils.createDisplayTemplate(track));
-        }
-
+        SpeechletUtils.addTrackDisplay(handlerInput, track, responseBuilder);
         return responseBuilder.build();
     }
 
@@ -209,9 +170,8 @@ public class TrackHandler {
         try {
             if (handlerInput.getAttributesManager().getSessionAttributes().containsKey("item")) {
                 JSONObject j = new JSONObject(handlerInput.getAttributesManager().getSessionAttributes());
-                log.debug("Session attribute: " + j);
                 Track t = Track.createFromJSON(j);
-                log.debug(t.getName());
+                log.debug("Restored track: " + t.getName());
                 return t;
             }
         } catch (IOException ie) {

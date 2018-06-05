@@ -1,7 +1,11 @@
 package com.sk7software.whatsthatsong.util;
 
+import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.model.interfaces.display.*;
 import com.amazon.ask.response.ResponseBuilder;
+import com.amazonaws.util.StringUtils;
+import com.sk7software.whatsthatsong.model.AvailableDevices;
+import com.sk7software.whatsthatsong.model.Device;
 import com.sk7software.whatsthatsong.model.Track;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,23 +32,87 @@ public class SpeechletUtils {
         }
     }
 
-    public static Template createDisplayTemplate(Track track) {
+    public static void addTrackDisplay(HandlerInput handlerInput, Track track, ResponseBuilder responseBuilder) {
+        if (track != null) {
+            if (new DeviceCapability(handlerInput).hasDisplay()) {
+                log.debug("Device has display");
+                String artworkUrl = track.getArtworkUrl();
+                if (!StringUtils.isNullOrEmpty(artworkUrl)) {
+                    responseBuilder.addRenderTemplateDirective(createDisplayTemplate(artworkUrl,
+                            "<b>" + track.getName() + "</b>",
+                            "<font size=\"2\">" + track.getArtistName() + "</font>"));
+                }
+            }
+        }
+    }
+
+    public static void addAlbumDisplay(HandlerInput handlerInput, Track track, ResponseBuilder responseBuilder) {
+        if (track != null) {
+            if (new DeviceCapability(handlerInput).hasDisplay()) {
+                log.debug("Device has display");
+                String artworkUrl = track.getArtworkUrl();
+                if (!StringUtils.isNullOrEmpty(artworkUrl)) {
+                    responseBuilder.addRenderTemplateDirective(createDisplayTemplate(artworkUrl,
+                            "<b>" + track.getName() + "</b>",
+                            "<font size=\"2\">" + track.getArtistName() + "<br /><br />" +
+                                        "<i>" + track.getAlbumName() + "</i></font>"));
+                }
+            }
+        }
+    }
+
+    public static void addDeviceListDisplay(HandlerInput handlerInput, AvailableDevices devices, ResponseBuilder responseBuilder) {
+        if (devices != null) {
+            if (new DeviceCapability(handlerInput).hasDisplay()) {
+                log.debug("Device has display");
+                if (!devices.isEmpty()) {
+                    responseBuilder.addRenderTemplateDirective(createListDisplayTemplate(devices));
+                }
+            }
+        }
+    }
+
+    private static Template createDisplayTemplate(String imageUrl, String primaryText, String secondaryText) {
         List<ImageInstance> artwork = new ArrayList<>();
-        log.debug("Artwork URL: " + track.getArtworkUrl());
-        artwork.add(ImageInstance.builder().withUrl(track.getArtworkUrl()).build());
+        artwork.add(ImageInstance.builder()
+                .withUrl(imageUrl)
+                .build());
         return BodyTemplate2.builder()
                 .withTextContent(TextContent.builder()
-                        .withPrimaryText(RichText.builder().withText(track.getName()).build())
-                        .withSecondaryText(RichText.builder()
-                                .withText("<font size=\"2\">" + track.getArtistName() + "</font>")
+                        .withPrimaryText(RichText.builder()
+                                .withText(primaryText)
                                 .build())
-                        .build())
-                .withBackgroundImage(Image.builder()
-                        .withSources(artwork)
+                        .withSecondaryText(RichText.builder()
+                                .withText(secondaryText)
+                                .build())
                         .build())
                 .withImage(Image.builder()
                         .withSources(artwork)
                         .build())
+                .build();
+    }
+
+    private static Template createListDisplayTemplate(AvailableDevices devices) {
+        List<ListItem> list = new ArrayList<>();
+
+        for (Device d : devices.getDevices()) {
+            ListItem i = ListItem.builder()
+                    .withToken(String.valueOf(d.getId()))
+                    .withTextContent(TextContent.builder()
+                            .withPrimaryText(RichText.builder()
+                                    .withText("<font size=\"2\">" + d.getName() + "</font>")
+                                    .build())
+                            .withSecondaryText(RichText.builder()
+                                    .withText("<font size=\"1\">" + d.getType() + "</font>")
+                                    .build())
+                            .build())
+                    .build();
+            list.add(i);
+        }
+
+        return ListTemplate1.builder()
+                .withListItems(list)
+                .withTitle("Available Devices")
                 .build();
     }
 }

@@ -16,7 +16,7 @@ public class WhatsThatSongSpeechlet {
     private static final Logger log = LoggerFactory.getLogger(WhatsThatSongSpeechlet.class);
 
     private SpotifyAuthentication authentication = new SpotifyAuthentication();
-    private DeviceControlSpeechlet deviceControlSpeechlet;
+    private DeviceControlHandler deviceControlSpeechlet;
     private TrackHandler trackSpeechlet;
     private boolean initialised = false;
 
@@ -147,7 +147,7 @@ public class WhatsThatSongSpeechlet {
 //            authentication.setAccessToken(session.getUser().getAccessToken());
 //            log.info("Access token: " + session.getUser().getAccessToken());
 //            trackSpeechlet = new TrackHandler(authentication);
-//            deviceControlSpeechlet = new DeviceControlSpeechlet(authentication);
+//            deviceControlSpeechlet = new DeviceControlHandler(authentication);
 //            initialised = true;
 //        }
     }

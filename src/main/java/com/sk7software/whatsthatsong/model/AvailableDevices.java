@@ -79,6 +79,10 @@ public class AvailableDevices {
         }
     }
 
+    public List<Device> getDevices() {
+        return devices;
+    }
+
     public String getDeviceList(boolean verbose) throws MissingElementException {
         StringBuilder speechText = new StringBuilder();
 
