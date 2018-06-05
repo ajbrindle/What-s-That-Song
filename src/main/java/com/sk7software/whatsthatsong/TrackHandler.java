@@ -36,7 +36,6 @@ public class TrackHandler {
 
             if (track != null) {
                 ObjectMapper mapper = new ObjectMapper();
-                //handlerInput.getAttributesManager().setSessionAttributes(mapper.convertValue(track, Map.class));
                 handlerInput.getAttributesManager().getSessionAttributes().put("item", mapper.convertValue(track.getItem(), Map.class));
             }
             speechText.append(track.getFullDescription());
