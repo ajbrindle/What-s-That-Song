@@ -1,0 +1,45 @@
+{
+    "devices": [
+        {
+            "id": "device1",
+            "is_active": true,
+            "is_restricted": false,
+            "name": "Echo Dot",
+            "type": "Speaker",
+            "volume_percent": 57
+        },
+        {
+            "id": "device2",
+            "is_active": false,
+            "is_restricted": false,
+            "name": "Lounge",
+            "type": "AVR",
+            "volume_percent": 18
+        },
+        {
+            "id": "device3",
+            "is_active": false,
+            "is_restricted": false,
+            "name": "Home PC",
+            "type": "Computer",
+            "volume_percent": 0
+        },
+        {
+            "id": "device4",
+            "is_active": false,
+            "is_restricted": false,
+            "name": "MacBook",
+            "type": "Computer",
+            "volume_percent": 68
+        },
+        {
+            "id": "device5",
+            "is_active": false,
+            "is_restricted": true,
+            "name": "Not Listed",
+            "type": "Restricted",
+            "volume_percent": 10
+        }
+
+    ]
+}
