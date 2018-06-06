@@ -25,6 +25,7 @@ public class SpotifyPlayerAPIService {
     public static final String PLAYER_URL = "https://api.spotify.com/v1/me/player";
     public static final String VOLUME_URL = "https://api.spotify.com/v1/me/player/volume?volume_percent=";
     public static final String SKIP_URL = "https://api.spotify.com/v1/me/player/next";
+    public static final String PREV_URL = "https://api.spotify.com/v1/me/player/previous";
     public static final String RESTART_URL = "https://api.spotify.com/v1/me/player/seek?position_ms=0";
     public static final String PAUSE_URL = "https://api.spotify.com/v1/me/player/pause";
     public static final String RESUME_URL = "https://api.spotify.com/v1/me/player/play";
@@ -94,7 +95,7 @@ public class SpotifyPlayerAPIService {
                     "Bearer " + accessToken);
             con.setRequestProperty("Accept", "application/json");
 
-            if (postParams != null && postParams.size() > 0) {
+            if (postParams != null) {
                 JSONObject postData = new JSONObject(postParams);
                 con.setRequestProperty("Content-Type", "application/json");
                 log.info("postData: " + postData.toString());

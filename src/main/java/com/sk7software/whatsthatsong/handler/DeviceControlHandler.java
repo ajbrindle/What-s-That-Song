@@ -287,7 +287,7 @@ public class DeviceControlHandler implements RequestHandler {
         return playerControl(action, track, handlerInput);
     }
 
-    private Optional<Response> playerControl(PlayerAction action, Track track, HandlerInput handlerInput) {
+    public Optional<Response> playerControl(PlayerAction action, Track track, HandlerInput handlerInput) {
         StringBuilder speechText = new StringBuilder();
 
         try {
@@ -299,6 +299,11 @@ public class DeviceControlHandler implements RequestHandler {
             switch (action) {
                 case SKIP:
                     spotifyURL = SpotifyPlayerAPIService.SKIP_URL;
+                    method = "POST";
+                    speechText.append("Skipped");
+                    break;
+                case PREVIOUS:
+                    spotifyURL = SpotifyPlayerAPIService.PREV_URL;
                     method = "POST";
                     speechText.append("Skipped");
                     break;

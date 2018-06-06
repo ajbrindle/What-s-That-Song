@@ -3,6 +3,7 @@ package com.sk7software.whatsthatsong.handler;
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.model.Response;
 import com.amazon.ask.response.ResponseBuilder;
+import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sk7software.whatsthatsong.exception.SpeechException;
@@ -34,7 +35,7 @@ public class TrackHandler {
             // Update session attributes
             if (track != null) {
                 ObjectMapper mapper = new ObjectMapper();
-                handlerInput.getAttributesManager().getSessionAttributes().put("item", mapper.convertValue(track.getItem(), Map.class));
+                handlerInput.getAttributesManager().getSessionAttributes().put("track", mapper.convertValue(track, Map.class));
             }
             speechText.append(track.getFullDescription());
         } catch (SpeechException se) {
@@ -71,7 +72,7 @@ public class TrackHandler {
                 track.setOriginalAlbumUri(originalTrack.getAlbumUri());
                 track.setOriginalAlbumName(originalTrack.getAlbumName());
                 ObjectMapper mapper = new ObjectMapper();
-                handlerInput.getAttributesManager().getSessionAttributes().put("item", mapper.convertValue(track.getItem(), Map.class));
+                handlerInput.getAttributesManager().getSessionAttributes().put("track", mapper.convertValue(track, Map.class));
             }
         } catch (SpeechException se) {
             speechText.append(se.getSpeechText());
@@ -170,12 +171,14 @@ public class TrackHandler {
 
     public static Track getTrackFromSession(HandlerInput handlerInput) {
         try {
-            if (handlerInput.getAttributesManager().getSessionAttributes().containsKey("item")) {
+            if (handlerInput.getAttributesManager().getSessionAttributes().containsKey("track")) {
                 JSONObject j = new JSONObject(handlerInput.getAttributesManager().getSessionAttributes());
-                Track t = Track.createFromJSON(j);
+                Track t = Track.createFromJSON(j.getJSONObject("track"));
                 log.debug("Restored track: " + t.getName());
                 return t;
             }
+        } catch (JSONException je) {
+            log.error("Unable to deserialise track: " + je.getMessage());
         } catch (IOException ie) {
             log.error("Unable to deserialise track: " + ie.getMessage());
         }

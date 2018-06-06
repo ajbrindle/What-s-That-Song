@@ -23,9 +23,7 @@ public class Track implements Serializable {
     private TrackItem item;
     @JsonProperty("progress_ms")
     private int progress;
-    @JsonIgnore
     private String originalAlbumUri;
-    @JsonIgnore
     private String originalAlbumName;
 
     public Track() {}
