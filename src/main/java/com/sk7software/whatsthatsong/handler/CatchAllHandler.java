@@ -11,19 +11,7 @@ import static com.amazon.ask.request.Predicates.intentName;
 public class CatchAllHandler implements RequestHandler {
     @Override
     public boolean canHandle(HandlerInput input) {
-        return input.matches(intentName("PlayerControlSkipIntent")) ||
-            input.matches(intentName("PlayerControlRestartIntent")) ||
-            input.matches(intentName("PlayerControlPauseIntent")) ||
-            input.matches(intentName("PlayerControlResumeIntent")) ||
-            input.matches(intentName("AlbumPlayIntent")) ||
-            input.matches(intentName("OriginalAlbumPlayIntent")) ||
-            input.matches(intentName("DeviceListIntent")) ||
-            input.matches(intentName("DeviceFetchIntent")) ||
-            input.matches(intentName("DevicePlayIntent")) ||
-            input.matches(intentName("DevicePlayByNameIntent")) ||
-            input.matches(intentName("DeviceVolumeIntent")) ||
-            input.matches(intentName("DeviceMuteIntent")) ||
-            input.matches(intentName("DeviceUnmuteIntent")) ||
+        return
             input.matches(intentName("AMAZON.HelpIntent")) ||
             input.matches(intentName("AMAZON.MoreIntent")) ||
             input.matches(intentName("AMAZON.NavigateHomeIntent")) ||

@@ -6,6 +6,7 @@
 
 package com.sk7software.whatsthatsong.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -89,6 +90,7 @@ public class Device {
         this.oldVolumePercent = oldVolumePercent;
     }
 
+    @JsonIgnore
     public String getDeviceDescription() {
         StringBuilder s = new StringBuilder();
         s.append("Device ");

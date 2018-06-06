@@ -70,6 +70,8 @@ public class TrackHandler {
                 speechText.append(album.buildAlbumInfo());
                 track.setOriginalAlbumUri(originalTrack.getAlbumUri());
                 track.setOriginalAlbumName(originalTrack.getAlbumName());
+                ObjectMapper mapper = new ObjectMapper();
+                handlerInput.getAttributesManager().getSessionAttributes().put("item", mapper.convertValue(track.getItem(), Map.class));
             }
         } catch (SpeechException se) {
             speechText.append(se.getSpeechText());
@@ -166,7 +168,7 @@ public class TrackHandler {
         return responseBuilder.build();
     }
 
-    private Track getTrackFromSession(HandlerInput handlerInput) {
+    public static Track getTrackFromSession(HandlerInput handlerInput) {
         try {
             if (handlerInput.getAttributesManager().getSessionAttributes().containsKey("item")) {
                 JSONObject j = new JSONObject(handlerInput.getAttributesManager().getSessionAttributes());

@@ -33,7 +33,6 @@ public class WhatsThatSongSpeechletRequestStreamHandler extends SkillStreamHandl
                         new WhatsThatSongIntentHandler(),
                         new DeviceControlHandler(),
                         new LaunchRequestHandler(),
-                        new DeviceSelectedHandler(),
                         new CatchAllHandler())
                 .addExceptionHandler(
                         new ExceptionHandler() {

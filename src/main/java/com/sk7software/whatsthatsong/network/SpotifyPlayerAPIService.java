@@ -40,6 +40,7 @@ public class SpotifyPlayerAPIService {
         HttpURLConnection con = null;
 
         try {
+            log.debug("Player URL: " + requestUrl);
             URL url = new URL(requestUrl);
             con = makeRequest(url, method, authentication.getAccessToken(), postParams);
             int responseCode = con.getResponseCode();
@@ -62,6 +63,7 @@ public class SpotifyPlayerAPIService {
 
             if (responseCode != RESPONSE_DONE &&
                 responseCode != RESPONSE_OK) {
+                log.debug("Response code: " + responseCode);
                 throw new SpotifyWebAPIException("Failed to send action to player");
             }
         } catch (IOException e) {
@@ -90,17 +92,19 @@ public class SpotifyPlayerAPIService {
             // stuff the Authorization request header
             con.setRequestProperty("Authorization",
                     "Bearer " + accessToken);
+            con.setRequestProperty("Accept", "application/json");
 
             if (postParams != null && postParams.size() > 0) {
                 JSONObject postData = new JSONObject(postParams);
                 con.setRequestProperty("Content-Type", "application/json");
-                con.setRequestProperty("Accept", "application/json");
                 log.info("postData: " + postData.toString());
                 con.setDoOutput(true);
                 con.getOutputStream().write(postData.toString().getBytes());
                 con.getOutputStream().flush();
                 con.getOutputStream().close();
             } else {
+                con.setDoOutput(true);
+                con.setRequestProperty("Content-Length", "0");
                 con.connect();
             }
 

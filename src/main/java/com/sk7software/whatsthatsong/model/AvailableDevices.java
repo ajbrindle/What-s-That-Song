@@ -3,6 +3,7 @@ package com.sk7software.whatsthatsong.model;
 import com.amazonaws.util.json.JSONArray;
 import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,14 +42,17 @@ public class AvailableDevices {
         return ad;
     }
 
+    @JsonIgnore
     public boolean isEmpty() {
         return devices.isEmpty();
     }
 
+    @JsonIgnore
     public int getNumberOfDevices() {
         return devices.size();
     }
 
+    @JsonIgnore
     public Device getDeviceAtIndex(int index) throws UnknownDeviceException, MissingElementException {
         if (devices == null || devices.size() == 0) {
             throw new MissingElementException("Please fetch the device list first.");
@@ -83,6 +87,7 @@ public class AvailableDevices {
         return devices;
     }
 
+    @JsonIgnore
     public String getDeviceList(boolean verbose) throws MissingElementException {
         StringBuilder speechText = new StringBuilder();
 
@@ -112,6 +117,7 @@ public class AvailableDevices {
         }
     }
 
+    @JsonIgnore
     public Device getActiveDevice() {
         for (Device d : devices) {
             if (d.isActive()) {
