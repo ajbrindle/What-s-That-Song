@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
  */
 public class WhatsThatSongSpeechletRequestStreamHandler extends SkillStreamHandler {
     private static final Logger log = LoggerFactory.getLogger(WhatsThatSongSpeechletRequestStreamHandler.class);
-    private static final Set<String> supportedApplicationIds = new HashSet<>();
+    private static final String applicationId = "amzn1.ask.skill.d107f617-9a63-464e-95b7-9f29403e716b";
 
     private static Skill getSkill() {
         return Skills.standard()
@@ -52,7 +52,7 @@ public class WhatsThatSongSpeechletRequestStreamHandler extends SkillStreamHandl
                             }
                         }
                 )
-                .withSkillId("amzn1.ask.skill.d107f617-9a63-464e-95b7-9f29403e716b")
+                .withSkillId(applicationId)
                 .build();
     }
 

@@ -16,8 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class TrackHandler {
     private static final Logger log = LoggerFactory.getLogger(TrackHandler.class);
@@ -135,6 +134,58 @@ public class TrackHandler {
         }
 
         ResponseBuilder responseBuilder = SpeechletUtils.buildStandardAskResponse(speechText.toString(), true);
+        SpeechletUtils.addAlbumDisplay(handlerInput, track, responseBuilder);
+        return responseBuilder.build();
+    }
+
+    public Optional<Response> getAlbumInLibraryResponse(HandlerInput handlerInput) {
+        StringBuilder speechText = new StringBuilder();
+        Track track = getTrackFromSession(handlerInput);
+        Boolean inLibrary = false;
+
+        try {
+            log.info("Lookup " + track.getAlbumId());
+            SpotifyWebAPIService libraryService = new AlbumLibraryQueryAPIService();
+            inLibrary = (Boolean)libraryService.fetchItem(
+                    SpotifyWebAPIService.LIBRARY_QUERY_URL + track.getAlbumId(),
+                    new SpotifyAuthentication(handlerInput));
+            speechText.append("This album is ");
+            speechText.append(inLibrary ? "already" : "not");
+            speechText.append(" in your library.");
+        } catch (SpeechException se) {
+            speechText.append(se.getSpeechText());
+        } catch (Exception e) {
+            speechText.append("Sorry, I couldn't find your library information");
+            log.error(e.getMessage());
+        }
+
+        ResponseBuilder responseBuilder = SpeechletUtils.buildStandardAskResponse(speechText.toString(), false);
+        SpeechletUtils.addAlbumDisplay(handlerInput, track, responseBuilder);
+        return responseBuilder.build();
+    }
+
+    public Optional<Response> getAlbumAddToLibraryResponse(HandlerInput handlerInput) {
+        StringBuilder speechText = new StringBuilder();
+        Track track = getTrackFromSession(handlerInput);
+
+        try {
+            log.info("Add " + track.getAlbumId());
+            List<String> ids = new ArrayList<>();
+            ids.add(track.getAlbumId());
+
+            SpotifyWebUpdateAPIService libraryService = new SpotifyWebUpdateAPIService();
+            libraryService.sendCommand(
+                    SpotifyWebUpdateAPIService.LIBRARY_ADD_URL, "PUT", ids,
+                        new SpotifyAuthentication(handlerInput));
+            speechText.append("This album has been added to your library");
+        } catch (SpeechException se) {
+            speechText.append(se.getSpeechText());
+        } catch (Exception e) {
+            speechText.append("Sorry, there was an error adding the album to your library");
+            log.error(e.getMessage());
+        }
+
+        ResponseBuilder responseBuilder = SpeechletUtils.buildStandardAskResponse(speechText.toString(), false);
         SpeechletUtils.addAlbumDisplay(handlerInput, track, responseBuilder);
         return responseBuilder.build();
     }

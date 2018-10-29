@@ -3,9 +3,7 @@ package com.sk7software.whatsthatsong;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.sk7software.whatsthatsong.exception.SpeechException;
 import com.sk7software.whatsthatsong.exception.SpotifyWebAPIException;
-import com.sk7software.whatsthatsong.model.Track;
-import com.sk7software.whatsthatsong.network.NowPlayingAPIService;
-import com.sk7software.whatsthatsong.network.SpotifyPlayerAPIService;
+import com.sk7software.whatsthatsong.network.SpotifyWebUpdateAPIService;
 import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
 import org.junit.Before;
 import org.junit.Rule;
@@ -18,7 +16,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class SpotifyPlayerAPITest {
-    private SpotifyPlayerAPIService service;
+    private SpotifyWebUpdateAPIService service;
     private SpotifyAuthentication auth;
 
     @Rule
@@ -26,7 +24,7 @@ public class SpotifyPlayerAPITest {
 
     @Before
     public void setup() {
-        service = new SpotifyPlayerAPIService();
+        service = new SpotifyWebUpdateAPIService();
         auth = new SpotifyAuthentication();
         auth.setAccessToken("123");
     }
@@ -38,7 +36,7 @@ public class SpotifyPlayerAPITest {
                         .withStatus(429)
                         .withHeader("Retry-After", "0")));
         try {
-            service.sendPlayerCommand("http://localhost:8089/rateLimit", "PUT", null, auth);
+            service.sendCommand("http://localhost:8089/rateLimit", "PUT", null, auth);
             assertFalse(true);
         } catch (SpeechException ule) {
             assertEquals("The usage limit for Spotify has been exceeded. " +
@@ -54,7 +52,7 @@ public class SpotifyPlayerAPITest {
                         .withStatus(429)
                         .withHeader("Retry-After", "359")));
         try {
-            service.sendPlayerCommand("http://localhost:8089/rateLimit", "PUT", null, auth);
+            service.sendCommand("http://localhost:8089/rateLimit", "PUT", null, auth);
             assertFalse(true);
         } catch (SpeechException ule) {
             assertEquals("The usage limit for Spotify has been exceeded. " +
@@ -70,7 +68,7 @@ public class SpotifyPlayerAPITest {
                         .withStatus(429)
                         .withHeader("Retry-After", "10")));
         try {
-            service.sendPlayerCommand("http://localhost:8089/rateLimit", "PUT", null, auth);
+            service.sendCommand("http://localhost:8089/rateLimit", "PUT", null, auth);
             assertFalse(true);
         } catch (SpeechException ule) {
             assertEquals("The usage limit for Spotify has been exceeded. " +
@@ -87,7 +85,7 @@ public class SpotifyPlayerAPITest {
                         .withHeader("Retry-After", "10")));
 
         service.setRetryInterval(5);
-        service.sendPlayerCommand("http://localhost:8089/retry", "PUT", null, auth);
+        service.sendCommand("http://localhost:8089/retry", "PUT", null, auth);
         assertFalse(true);
     }
 
@@ -105,7 +103,7 @@ public class SpotifyPlayerAPITest {
                         .withStatus(204)));
 
         service.setRetryInterval(5);
-        service.sendPlayerCommand("http://localhost:8089/retry", "PUT", null, auth);
+        service.sendCommand("http://localhost:8089/retry", "PUT", null, auth);
         assertTrue(true);
     }
 

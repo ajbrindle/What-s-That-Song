@@ -8,6 +8,7 @@ package com.sk7software.whatsthatsong.model;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.sk7software.whatsthatsong.exception.SpotifyWebAPIException;
+import com.sk7software.whatsthatsong.network.AlbumLibraryQueryAPIService;
 import com.sk7software.whatsthatsong.network.NowPlayingAPIService;
 import com.sk7software.whatsthatsong.network.SpotifyWebAPIService;
 import com.sk7software.whatsthatsong.network.TrackAPIService;
@@ -183,4 +184,31 @@ public class TrackTest {
         String result = instance.getTimeString(millis);
         assertEquals("2 minutes 1 second", result);
     }
+
+    @Test
+    public void testAlbumIsInLibrary() throws Exception {
+        service = new AlbumLibraryQueryAPIService();
+        stubFor(get(urlPathMatching("/albums/contains*"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("isInLibrary.json")));
+
+        Boolean result = (Boolean)service.fetchItem("http://localhost:8089/albums/contains?ids=123", auth);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testAlbumIsNotInLibrary() throws Exception {
+        service = new AlbumLibraryQueryAPIService();
+        stubFor(get(urlPathMatching("/albums/contains*"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("isNotInLibrary.json")));
+
+        Boolean result = (Boolean)service.fetchItem("http://localhost:8089/albums/contains?ids=123", auth);
+        assertFalse(result);
+    }
+
 }

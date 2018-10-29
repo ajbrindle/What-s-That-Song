@@ -1,26 +1,26 @@
 package com.sk7software.whatsthatsong.network;
 
+import com.amazonaws.util.json.JSONArray;
 import com.amazonaws.util.json.JSONObject;
 import com.sk7software.whatsthatsong.exception.SpeechException;
-import com.sk7software.whatsthatsong.exception.SpotifyAuthenticationException;
 import com.sk7software.whatsthatsong.exception.SpotifyWebAPIException;
 import com.sk7software.whatsthatsong.exception.UsageLimitException;
 import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
-import javafx.scene.effect.Light;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 
 import static com.sk7software.whatsthatsong.network.SpotifyWebAPIService.RESPONSE_DONE;
 import static com.sk7software.whatsthatsong.network.SpotifyWebAPIService.RESPONSE_OK;
 import static com.sk7software.whatsthatsong.network.SpotifyWebAPIService.RESPONSE_RETRY;
 
-public class SpotifyPlayerAPIService {
-    protected static final Logger log = LoggerFactory.getLogger(SpotifyPlayerAPIService.class);
+public class SpotifyWebUpdateAPIService {
+    protected static final Logger log = LoggerFactory.getLogger(SpotifyWebUpdateAPIService.class);
 
     public static final String PLAYER_URL = "https://api.spotify.com/v1/me/player";
     public static final String VOLUME_URL = "https://api.spotify.com/v1/me/player/volume?volume_percent=";
@@ -31,17 +31,19 @@ public class SpotifyPlayerAPIService {
     public static final String RESUME_URL = "https://api.spotify.com/v1/me/player/play";
     public static final String PLAY_ALBUM_URL = "https://api.spotify.com/v1/me/player/play";
     public static final String PLAY_ORIGINAL_ALBUM_URL = "https://api.spotify.com/v1/me/player/play";
+    public static final String LIBRARY_ADD_URL ="https://api.spotify.com/v1/me/albums";
+
 
     private int retryInterval = 5000;
 
-    public void sendPlayerCommand(String requestUrl, String method,
-                                 Map<String, Object> postParams, SpotifyAuthentication authentication)
+    public void sendCommand(String requestUrl, String method,
+                            Object postParams, SpotifyAuthentication authentication)
             throws SpeechException {
 
         HttpURLConnection con = null;
 
         try {
-            log.debug("Player URL: " + requestUrl);
+            log.debug("Command URL: " + requestUrl);
             URL url = new URL(requestUrl);
             con = makeRequest(url, method, authentication.getAccessToken(), postParams);
             int responseCode = con.getResponseCode();
@@ -65,7 +67,7 @@ public class SpotifyPlayerAPIService {
             if (responseCode != RESPONSE_DONE &&
                 responseCode != RESPONSE_OK) {
                 log.debug("Response code: " + responseCode);
-                throw new SpotifyWebAPIException("Failed to send action to player");
+                throw new SpotifyWebAPIException("Failed to send action");
             }
         } catch (IOException e) {
             try {
@@ -74,7 +76,7 @@ public class SpotifyPlayerAPIService {
                 }
             } catch (IOException e1) {}
             log.error(e.getMessage());
-            throw new SpotifyWebAPIException("Failed to send action to player");
+            throw new SpotifyWebAPIException("Failed to send action");
         } finally {
             if (con != null) {
                 con.disconnect();
@@ -83,7 +85,7 @@ public class SpotifyPlayerAPIService {
     }
 
     private HttpURLConnection makeRequest(URL url, String method,
-                                          String accessToken, Map<String, Object> postParams) throws IOException {
+                                          String accessToken, Object postParams) throws IOException {
         try {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
@@ -96,16 +98,26 @@ public class SpotifyPlayerAPIService {
             con.setRequestProperty("Accept", "application/json");
 
             if (postParams != null) {
-                JSONObject postData = new JSONObject(postParams);
                 con.setRequestProperty("Content-Type", "application/json");
-                log.info("postData: " + postData.toString());
                 con.setDoOutput(true);
-                con.getOutputStream().write(postData.toString().getBytes());
+                if (postParams instanceof Map) {
+                    if (!((Map) postParams).isEmpty()) {
+                        JSONObject postData = new JSONObject((Map)postParams);
+                        log.info("postData: " + postData.toString());
+                        con.getOutputStream().write(postData.toString().getBytes());
+                    }
+                } else if (postParams instanceof List) {
+                    if (!((List) postParams).isEmpty()) {
+                        JSONArray postData = new JSONArray((List)postParams);
+                        log.info("postData: " + postData.toString());
+                        con.getOutputStream().write(postData.toString().getBytes());
+                    }
+                }
                 con.getOutputStream().flush();
                 con.getOutputStream().close();
             } else {
-                con.setDoOutput(true);
                 con.setRequestProperty("Content-Length", "0");
+                con.setDoOutput(true);
                 con.connect();
             }
 

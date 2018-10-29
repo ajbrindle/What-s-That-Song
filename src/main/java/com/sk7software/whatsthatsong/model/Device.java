@@ -140,4 +140,8 @@ public class Device {
         
         return score;
     }
+
+    public String toString() {
+        return getDeviceDescription();
+    }
 }

@@ -29,6 +29,7 @@ public abstract class SpotifyWebAPIService {
     public static final String TRACK_PROGRESS_URL = "https://api.spotify.com/v1/me/player";
     public static final String USER_URL = "https://api.spotify.com/v1/me";
     public static final String DEVICES_URL = "https://api.spotify.com/v1/me/player/devices";
+    public static final String LIBRARY_QUERY_URL ="https://api.spotify.com/v1/me/albums/contains?ids=";
 
     private int retryInterval = 5000;
 

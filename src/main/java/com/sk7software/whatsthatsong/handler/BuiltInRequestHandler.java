@@ -43,7 +43,7 @@ public class BuiltInRequestHandler implements RequestHandler {
                    input.matches(intentName("AMAZON.ScrollRightIntent"))) {
             return new DeviceControlHandler().playerControl(PlayerAction.SKIP, null, input);
         } else if (input.matches(intentName("AMAZON.PreviousIntent")) ||
-                   input.matches(intentName("AMAZON.LeftIntent"))) {
+                   input.matches(intentName("AMAZON.ScrollLeftIntent"))) {
             return new DeviceControlHandler().playerControl(PlayerAction.PREVIOUS, null, input);
         } else {
             return new ResponseBuilder()

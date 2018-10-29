@@ -21,6 +21,9 @@ OriginalAlbumNameIntent What is the original album
 OriginalAlbumNameIntent What album by the artist is it on
 OriginalAlbumPlayIntent Play the original album
 OriginalAlbumPlayIntent Play the artist album
+AlbumLibraryQueryIntent Is it in my library
+AlbumLibraryAddIntent Add it to my library
+AlbumLibraryAddIntent Add it
 DeviceListIntent List devices
 DeviceListIntent List my devices
 DeviceListIntent List my available devices

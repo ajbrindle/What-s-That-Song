@@ -2,7 +2,6 @@ package com.sk7software.whatsthatsong.handler;
 
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.dispatcher.request.handler.RequestHandler;
-import com.amazon.ask.model.Intent;
 import com.amazon.ask.model.IntentRequest;
 import com.amazon.ask.model.Response;
 import com.amazon.ask.model.interfaces.display.ElementSelectedRequest;
@@ -16,7 +15,7 @@ import com.sk7software.whatsthatsong.model.AvailableDevices;
 import com.sk7software.whatsthatsong.model.Device;
 import com.sk7software.whatsthatsong.model.Track;
 import com.sk7software.whatsthatsong.network.DevicesAPIService;
-import com.sk7software.whatsthatsong.network.SpotifyPlayerAPIService;
+import com.sk7software.whatsthatsong.network.SpotifyWebUpdateAPIService;
 import com.sk7software.whatsthatsong.network.SpotifyWebAPIService;
 import com.sk7software.whatsthatsong.util.PlayerAction;
 import com.sk7software.whatsthatsong.util.SpeechSlot;
@@ -139,6 +138,7 @@ public class DeviceControlHandler implements RequestHandler {
 
             AvailableDevices devices = getDevicesFromSession(handlerInput);
             Device device = devices.getDeviceAtIndex(index);
+            log.debug("Chosen device: " + device.toString());
             speechText = playOnDevice(device.getId(), devices, handlerInput);
         } catch (NumberFormatException nfe) {
             speechText = "Sorry, I couldn't recognise that device number.";
@@ -174,7 +174,7 @@ public class DeviceControlHandler implements RequestHandler {
             Map<String, Object> param = new HashMap<>();
             param.put("device_ids", new String[]{id});
 
-            new SpotifyPlayerAPIService().sendPlayerCommand(SpotifyPlayerAPIService.PLAYER_URL, "PUT", param,
+            new SpotifyWebUpdateAPIService().sendCommand(SpotifyWebUpdateAPIService.PLAYER_URL, "PUT", param,
                     new SpotifyAuthentication(handlerInput));
             devices.setActiveDevice(id);
             addDevicesToSession(devices, handlerInput);
@@ -238,10 +238,10 @@ public class DeviceControlHandler implements RequestHandler {
 
         log.info("Changing volume from " + oldVolume + " to " + newVolume);
 
-        volumeURL = SpotifyPlayerAPIService.VOLUME_URL + String.valueOf(newVolume);
+        volumeURL = SpotifyWebUpdateAPIService.VOLUME_URL + String.valueOf(newVolume);
 
         try {
-            new SpotifyPlayerAPIService().sendPlayerCommand(volumeURL, "PUT", null,
+            new SpotifyWebUpdateAPIService().sendCommand(volumeURL, "PUT", null,
                     new SpotifyAuthentication(handlerInput));
             devices.getActiveDevice().setVolumePercent(newVolume);
             devices.getActiveDevice().setOldVolumePercent(oldVolume);
@@ -298,32 +298,32 @@ public class DeviceControlHandler implements RequestHandler {
 
             switch (action) {
                 case SKIP:
-                    spotifyURL = SpotifyPlayerAPIService.SKIP_URL;
+                    spotifyURL = SpotifyWebUpdateAPIService.SKIP_URL;
                     method = "POST";
                     speechText.append("Skipped");
                     break;
                 case PREVIOUS:
-                    spotifyURL = SpotifyPlayerAPIService.PREV_URL;
+                    spotifyURL = SpotifyWebUpdateAPIService.PREV_URL;
                     method = "POST";
                     speechText.append("Skipped");
                     break;
                 case RESTART:
-                    spotifyURL = SpotifyPlayerAPIService.RESTART_URL;
+                    spotifyURL = SpotifyWebUpdateAPIService.RESTART_URL;
                     method = "PUT";
                     speechText.append("Restarted");
                     break;
                 case PAUSE:
-                    spotifyURL = SpotifyPlayerAPIService.PAUSE_URL;
+                    spotifyURL = SpotifyWebUpdateAPIService.PAUSE_URL;
                     method = "PUT";
                     speechText.append("Paused");
                     break;
                 case RESUME:
-                    spotifyURL = SpotifyPlayerAPIService.RESUME_URL;
+                    spotifyURL = SpotifyWebUpdateAPIService.RESUME_URL;
                     method = "PUT";
                     speechText.append("Resumed");
                     break;
                 case PLAY_ALBUM:
-                    spotifyURL = SpotifyPlayerAPIService.PLAY_ALBUM_URL;
+                    spotifyURL = SpotifyWebUpdateAPIService.PLAY_ALBUM_URL;
                     method = "PUT";
                     postParams.put("context_uri", track.getAlbumUri());
                     position.put("position", 0);
@@ -332,7 +332,7 @@ public class DeviceControlHandler implements RequestHandler {
                     speechText.append(track.getAlbumName());
                     break;
                 case PLAY_ORIGINAL_ALBUM:
-                    spotifyURL = SpotifyPlayerAPIService.PLAY_ORIGINAL_ALBUM_URL;
+                    spotifyURL = SpotifyWebUpdateAPIService.PLAY_ORIGINAL_ALBUM_URL;
                     if (track.hasOriginalAlbum()) {
                         method = "PUT";
                         postParams.put("context_uri", track.getOriginalAlbumUri());
@@ -350,8 +350,8 @@ public class DeviceControlHandler implements RequestHandler {
                     throw new Exception("Invalid action");
             }
 
-            new SpotifyPlayerAPIService()
-                    .sendPlayerCommand(spotifyURL, method, postParams,
+            new SpotifyWebUpdateAPIService()
+                    .sendCommand(spotifyURL, method, postParams,
                     new SpotifyAuthentication(handlerInput));
         } catch (SpeechException se) {
             speechText.delete(0, speechText.length());

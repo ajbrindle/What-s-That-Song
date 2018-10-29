@@ -1,0 +1,44 @@
+{
+  "item": {
+    "name": "Tougher Than the Rest",
+    "artists": [
+      {
+        "name": "Bruce Springsteen"
+      }
+    ],
+    "album": {
+      "name": "Tunnel Of Love",
+      "uri": "spotify:album:5Qcef60m4gcckV24PmPYVq",
+      "id": "5Qcef60m4gcckV24PmPYVq",
+      "artists": [
+        {
+          "name": "Bruce Springsteen"
+        }
+      ],
+      "release_date": "1987-10-06",
+      "release_date_precision": "day",
+      "images": [
+        {
+          "width": 640,
+          "height": 640,
+          "url": "https://i.scdn.co/image/ae14a2da8aeb08302cc3aa338f08d52f2615b0b4"
+        },
+        {
+          "width": 300,
+          "height": 300,
+          "url": "https://i.scdn.co/image/f0318f1fc33fc785a9b0a01145289fd10081ff86"
+        },
+        {
+          "width": 64,
+          "height": 64,
+          "url": "https://i.scdn.co/image/e3a3b23f8453761c16ff46ed8c4fce8f71adfb1b"
+        }
+      ]
+    },
+    "id": "7i0VrdLCDhvgWXfcT6EQJG",
+    "explicit": false,
+    "duration_ms": 273866
+  }
+},
+"progress_ms": 17790
+}

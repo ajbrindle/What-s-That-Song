@@ -25,6 +25,12 @@
       "intent": "AlbumNameIntent"
     },
     {
+      "intent": "AlbumLibraryQueryIntent"
+    },
+    {
+      "intent": "AlbumLibraryAddIntent"
+    },
+    {
       "intent": "AlbumPlayIntent"
     },
     {
