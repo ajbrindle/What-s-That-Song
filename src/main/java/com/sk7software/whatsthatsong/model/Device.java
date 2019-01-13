@@ -42,9 +42,7 @@ public class Device {
         this.active = active;
     }
 
-    public boolean isRestricted() {
-        return restricted;
-    }
+    public boolean isRestricted() { return restricted; }
 
     public void setRestricted(boolean restricted) {
         this.restricted = restricted;

@@ -30,6 +30,7 @@ public abstract class SpotifyWebAPIService {
     public static final String USER_URL = "https://api.spotify.com/v1/me";
     public static final String DEVICES_URL = "https://api.spotify.com/v1/me/player/devices";
     public static final String LIBRARY_QUERY_URL ="https://api.spotify.com/v1/me/albums/contains?ids=";
+    public static final String MUSIXMATCH_URL = "https://api.musixmatch.com/ws/1.1/matcher.lyrics.get?format=json";
 
     private int retryInterval = 5000;
 

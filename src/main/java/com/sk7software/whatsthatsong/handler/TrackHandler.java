@@ -8,6 +8,7 @@ import com.amazonaws.util.json.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sk7software.whatsthatsong.exception.SpeechException;
 import com.sk7software.whatsthatsong.model.Album;
+import com.sk7software.whatsthatsong.model.Lyrics;
 import com.sk7software.whatsthatsong.model.Track;
 import com.sk7software.whatsthatsong.network.*;
 import com.sk7software.whatsthatsong.util.SpeechletUtils;
@@ -16,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.*;
 
 public class TrackHandler {
@@ -190,10 +193,44 @@ public class TrackHandler {
         return responseBuilder.build();
     }
 
+    public Optional<Response> getLyricsResponse(HandlerInput handlerInput) {
+        StringBuilder speechText = new StringBuilder();
+        Track track = getTrackFromSession(handlerInput);
+        Lyrics lyrics = null;
+
+        try {
+            log.info("Fetch lyrics for " + track.getName());
+            lyrics = fetchLyrics(track, handlerInput);
+            speechText.append("Lyrics fetched");
+        } catch (SpeechException se) {
+            speechText.append(se.getSpeechText());
+        } catch (Exception e) {
+            speechText.append("Sorry, there was an error fetching the lyrics");
+            log.error(e.getMessage());
+        }
+
+        ResponseBuilder responseBuilder = SpeechletUtils.buildStandardAskResponse(speechText.toString(), false);
+        SpeechletUtils.addLyricsDisplay(handlerInput, track, lyrics, responseBuilder);
+        return responseBuilder.build();
+    }
+
     private Album fetchAlbum(String id, HandlerInput handlerInput) throws SpeechException {
         SpotifyWebAPIService albumService = new AlbumAPIService();
         return (Album)albumService.fetchItem(SpotifyWebAPIService.ALBUM_URL + id,
                 new SpotifyAuthentication(handlerInput));
+    }
+
+    private Lyrics fetchLyrics(Track track, HandlerInput handlerInput) throws SpeechException {
+        try {
+            SpotifyWebAPIService lyricsService = new LyricsAPIService();
+            String urlArgs = "&q_track=" + URLEncoder.encode(track.getName(), "UTF-8") +
+                    "&q_artist=" + URLEncoder.encode(track.getArtistName(), "UTF-8");
+            return (Lyrics) lyricsService.fetchItem(SpotifyWebAPIService.MUSIXMATCH_URL + urlArgs,
+                    new SpotifyAuthentication(handlerInput));
+        } catch (UnsupportedEncodingException e) {
+            log.error("Unsupported encoding: " + e.getMessage());
+            return null;
+        }
     }
 
     public Optional<Response> getTrackTimeResponse(HandlerInput handlerInput) {

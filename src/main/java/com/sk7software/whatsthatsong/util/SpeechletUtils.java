@@ -6,6 +6,7 @@ import com.amazon.ask.response.ResponseBuilder;
 import com.amazonaws.util.StringUtils;
 import com.sk7software.whatsthatsong.model.AvailableDevices;
 import com.sk7software.whatsthatsong.model.Device;
+import com.sk7software.whatsthatsong.model.Lyrics;
 import com.sk7software.whatsthatsong.model.Track;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +57,20 @@ public class SpeechletUtils {
                             "<b>" + track.getName() + "</b>",
                             "<font size=\"2\">" + track.getArtistName() + "<br /><br />" +
                                         "<i>" + track.getAlbumName() + "</i></font>"));
+                }
+            }
+        }
+    }
+
+    public static void addLyricsDisplay(HandlerInput handlerInput, Track track, Lyrics lyrics, ResponseBuilder responseBuilder) {
+        if (track != null) {
+            if (new DeviceCapability(handlerInput).hasDisplay()) {
+                log.debug("Device has display");
+                String artworkUrl = track.getArtworkUrl();
+                if (!StringUtils.isNullOrEmpty(artworkUrl) && lyrics != null) {
+                    responseBuilder.addRenderTemplateDirective(createDisplayTemplate(artworkUrl,
+                            "<font size=\"2\">" + lyrics.getFormattedLyrics() + "</font>",
+                            "<font size=\"1\"><i>" + lyrics.getCopyright() + "</i></font>"));
                 }
             }
         }

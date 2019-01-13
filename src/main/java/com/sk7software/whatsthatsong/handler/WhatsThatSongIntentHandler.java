@@ -17,6 +17,7 @@ public class WhatsThatSongIntentHandler implements RequestHandler {
                 handlerInput.matches(intentName("AlbumLibraryQueryIntent")) ||
                 handlerInput.matches(intentName("AlbumLibraryAddIntent")) ||
                 handlerInput.matches(intentName("OriginalAlbumNameIntent")) ||
+                handlerInput.matches(intentName("LyricsIntent")) ||
                 handlerInput.matches(intentName("TrackTimeIntent"));
     }
 
@@ -37,6 +38,8 @@ public class WhatsThatSongIntentHandler implements RequestHandler {
             return new TrackHandler().getTrackOriginalAlbumResponse(handlerInput);
         } else if (handlerInput.matches(intentName("TrackTimeIntent"))) {
             return new TrackHandler().getTrackTimeResponse(handlerInput);
+        } else if (handlerInput.matches(intentName("LyricsIntent"))) {
+            return new TrackHandler().getLyricsResponse(handlerInput);
         } else {
             return null;
         }
