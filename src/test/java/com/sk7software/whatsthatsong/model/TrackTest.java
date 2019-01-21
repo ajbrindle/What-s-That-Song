@@ -67,6 +67,7 @@ public class TrackTest {
         assertEquals("Mr. Brightside", result.getName());
         assertEquals("The Killers", result.getArtistName());
         assertEquals("Hot Fuss", result.getAlbumName());
+        assertEquals(2, result.getNumber());
         assertEquals("0eGsygTp906u18L0Oimnem", result.getId());
         assertEquals("6TJmQnO44YE5BtTxH8pop1", result.getAlbumId());
         assertEquals("spotify:album:6TJmQnO44YE5BtTxH8pop1", result.getAlbumUri());

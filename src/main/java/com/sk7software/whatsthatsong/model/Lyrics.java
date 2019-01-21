@@ -4,6 +4,7 @@ import com.amazonaws.util.json.JSONObject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.io.IOException;
 
@@ -25,7 +26,7 @@ public class Lyrics {
     }
 
     private String format(String str) {
-        return str.replace("\n", "<br/>");
+        return StringEscapeUtils.escapeHtml4(str).replace("\n", "<br/>");
     }
 
     public String getFormattedLyrics() {

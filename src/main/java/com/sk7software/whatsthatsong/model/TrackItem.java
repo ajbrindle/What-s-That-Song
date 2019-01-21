@@ -13,9 +13,16 @@ public class TrackItem implements Serializable {
     private Album album;
     private String id;
     private boolean explicit;
+    private String uri;
+
+    @JsonProperty("track_number")
+    private int number;
 
     @JsonProperty("duration_ms")
     private int duration;
+
+    @JsonProperty("disc_number")
+    private int discNumber;
 
     public TrackItem() {
     }
@@ -66,6 +73,30 @@ public class TrackItem implements Serializable {
 
     public void setDuration(int duration) {
         this.duration = duration;
+    }
+
+    public int getNumber() {
+        return number;
+    }
+
+    public void setNumber(int number) {
+        this.number = number;
+    }
+
+    public int getDiscNumber() {
+        return discNumber;
+    }
+
+    public void setDiscNumber(int discNumber) {
+        this.discNumber = discNumber;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 
     public class LinkedFrom {

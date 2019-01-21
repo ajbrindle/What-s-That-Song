@@ -1,92 +1,377 @@
 {
-  "intents": [
-    {
-      "intent": "WhatsThatSongIntent"
-    },
-    {
-      "intent": "PlayerControlSkipIntent"
-    },
-    {
-      "intent": "PlayerControlResumeIntent"
-    },
-    {
-      "intent": "PlayerControlPauseIntent"
-    },
-    {
-      "intent": "PlayerControlRestartIntent"
-    },
-    {
-      "intent": "TrackExplicitIntent"
-    },
-    {
-      "intent": "TrackTimeIntent"
-    },
-    {
-      "intent": "AlbumNameIntent"
-    },
-    {
-      "intent": "AlbumLibraryQueryIntent"
-    },
-    {
-      "intent": "AlbumLibraryAddIntent"
-    },
-    {
-      "intent": "AlbumPlayIntent"
-    },
-    {
-      "intent": "OriginalAlbumNameIntent"
-    },
-    {
-      "intent": "OriginalAlbumPlayIntent"
-    },
-    {
-      "intent": "DeviceListIntent"
-    },
-    {
-      "intent": "DeviceFetchIntent"
-    },
-    {
-      "slots": [
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "playing now",
+      "intents": [
         {
-          "name": "deviceNumber",
-          "type": "AMAZON.NUMBER"
-        }
-      ],
-      "intent": "DevicePlayIntent"
-    },
-    {
-      "slots": [
-        {
-          "name": "deviceName",
-          "type": "deviceNames"
-        }
-      ],
-      "intent": "DevicePlayByNameIntent"
-    },
-    {
-      "slots": [
-        {
-          "name": "volumeAmount",
-          "type": "AMAZON.NUMBER"
+          "name": "WhatsThatSongIntent",
+          "slots": [],
+          "samples": [
+            "What is this song",
+            "What's this song",
+            "What's playing",
+            "What's playing on Spotify",
+            "What's playing now"
+          ]
         },
         {
-          "name": "volumeDirection",
-          "type": "UpDown"
+          "name": "PlayerControlSkipIntent",
+          "slots": [],
+          "samples": [
+            "Skip it",
+            "Don't like it skip it"
+          ]
+        },
+        {
+          "name": "PlayerControlResumeIntent",
+          "slots": [],
+          "samples": [
+            "Play it",
+            "Resume it"
+          ]
+        },
+        {
+          "name": "PlayerControlPauseIntent",
+          "slots": [],
+          "samples": [
+            "Pause it"
+          ]
+        },
+        {
+          "name": "PlayerControlRestartIntent",
+          "slots": [],
+          "samples": [
+            "Restart it"
+          ]
+        },
+        {
+          "name": "TrackExplicitIntent",
+          "slots": [],
+          "samples": [
+            "Is it explicit"
+          ]
+        },
+        {
+          "name": "TrackTimeIntent",
+          "slots": [],
+          "samples": [
+            "How long is it",
+            "Where is it up to"
+          ]
+        },
+        {
+          "name": "AlbumNameIntent",
+          "slots": [],
+          "samples": [
+            "What album is it from",
+            "What album is it on",
+            "What's the album"
+          ]
+        },
+        {
+          "name": "AlbumPlayIntent",
+          "slots": [],
+          "samples": [
+            "Play the album",
+            "Play the whole album"
+          ]
+        },
+        {
+          "name": "OriginalAlbumNameIntent",
+          "slots": [],
+          "samples": [
+            "What's the original album",
+            "What is the original album",
+            "What album by the artist is it on"
+          ]
+        },
+        {
+          "name": "OriginalAlbumPlayIntent",
+          "slots": [],
+          "samples": [
+            "Play the original album",
+            "Play the artist album"
+          ]
+        },
+        {
+          "name": "DeviceListIntent",
+          "slots": [],
+          "samples": [
+            "List devices",
+            "List my devices",
+            "List my available devices",
+            "Device list",
+            "What can I play it on"
+          ]
+        },
+        {
+          "name": "DeviceFetchIntent",
+          "slots": [],
+          "samples": [
+            "Fetch my devices"
+          ]
+        },
+        {
+          "name": "DevicePlayIntent",
+          "slots": [
+            {
+              "name": "deviceNumber",
+              "type": "AMAZON.NUMBER"
+            }
+          ],
+          "samples": [
+            "Play it on device {deviceNumber}"
+          ]
+        },
+        {
+          "name": "DevicePlayByNameIntent",
+          "slots": [
+            {
+              "name": "deviceName",
+              "type": "deviceNames"
+            }
+          ],
+          "samples": [
+            "Play it on {deviceName}",
+            "Play it on my {deviceName}",
+            "Play it on the {deviceName}",
+            "Transfer it to {deviceName}",
+            "Transfer it to the {deviceName}",
+            "Transfer it to my {deviceName}"
+          ]
+        },
+        {
+          "name": "DeviceVolumeIntent",
+          "slots": [
+            {
+              "name": "volumeAmount",
+              "type": "AMAZON.NUMBER"
+            },
+            {
+              "name": "volumeDirection",
+              "type": "UpDown"
+            }
+          ],
+          "samples": [
+            "Turn the volume {volumeDirection} by {volumeAmount}",
+            "Turn the volume {volumeDirection} {volumeAmount}",
+            "Volume {volumeDirection} by {volumeAmount}",
+            "Volume {volumeDirection} {volumeAmount}"
+          ]
+        },
+        {
+          "name": "DeviceMuteIntent",
+          "slots": [],
+          "samples": [
+            "Volume off",
+            "Mute"
+          ]
+        },
+        {
+          "name": "DeviceUnmuteIntent",
+          "slots": [],
+          "samples": [
+            "Volume on",
+            "Unmute"
+          ]
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.MoreIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NavigateSettingsIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NextIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.PageUpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.PageDownIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.PreviousIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.ScrollRightIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.ScrollDownIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.ScrollLeftIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.ScrollUpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AlbumLibraryQueryIntent",
+          "slots": [],
+          "samples": [
+            "Is it in my library"
+          ]
+        },
+        {
+          "name": "AlbumLibraryAddIntent",
+          "slots": [],
+          "samples": [
+            "Add it",
+            "Add it to my library"
+          ]
+        },
+        {
+          "name": "LyricsIntent",
+          "slots": [],
+          "samples": [
+            "Show me the words",
+            "Get the words",
+            "What are the words",
+            "Get the lyrics",
+            "What are the lyrics",
+            "Show me the lyrics",
+            "Show the lyrics"
+          ]
         }
       ],
-      "intent": "DeviceVolumeIntent"
-    },
-    {
-      "intent": "DeviceMuteIntent"
-    },
-    {
-      "intent": "DeviceUnmuteIntent"
-    },
-    {
-      "intent": "AMAZON.HelpIntent"
-    },
-    {
-      "intent": "AMAZON.StopIntent"
+      "types": [
+        {
+          "name": "UpDown",
+          "values": [
+            {
+              "name": {
+                "value": "up"
+              }
+            },
+            {
+              "name": {
+                "value": "down"
+              }
+            }
+          ]
+        },
+        {
+          "name": "deviceNames",
+          "values": [
+            {
+              "name": {
+                "value": "Sonos"
+              }
+            },
+            {
+              "name": {
+                "value": "echo"
+              }
+            },
+            {
+              "name": {
+                "value": "echo dot"
+              }
+            },
+            {
+              "name": {
+                "value": "speaker"
+              }
+            },
+            {
+              "name": {
+                "value": "bluetooth speaker"
+              }
+            },
+            {
+              "name": {
+                "value": "phone"
+              }
+            },
+            {
+              "name": {
+                "value": "chrome cast"
+              }
+            },
+            {
+              "name": {
+                "value": "amazon echo dot"
+              }
+            },
+            {
+              "name": {
+                "value": "lounge speaker"
+              }
+            },
+            {
+              "name": {
+                "value": "big portable speaker"
+              }
+            },
+            {
+              "name": {
+                "value": "computer"
+              }
+            },
+            {
+              "name": {
+                "value": "macbook"
+              }
+            },
+            {
+              "name": {
+                "value": "mac"
+              }
+            },
+            {
+              "name": {
+                "value": "macbook pro"
+              }
+            },
+            {
+              "name": {
+                "value": "macbook air"
+              }
+            },
+            {
+              "name": {
+                "value": "ipod"
+              }
+            },
+            {
+              "name": {
+                "value": "iphone"
+              }
+            },
+            {
+              "name": {
+                "value": "smartphone"
+              }
+            }
+          ]
+        }
+      ]
     }
-  ]
+  }
 }

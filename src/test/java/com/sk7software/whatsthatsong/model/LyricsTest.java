@@ -8,9 +8,7 @@ import com.sk7software.whatsthatsong.util.SpotifyAuthentication;
 import org.junit.*;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class LyricsTest {
     private SpotifyWebAPIService service;

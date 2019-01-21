@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -102,6 +103,12 @@ public class Album implements Serializable {
             return "Unknown";
         }
     }
+
+    @JsonIgnore
+    public int getTotalTracks() {
+        return tracks.getTotal();
+    }
+
     public String buildAlbumInfo() {
         StringBuilder info = new StringBuilder();
         info.append("It was released in ");
@@ -172,8 +179,36 @@ public class Album implements Serializable {
         }
     }
 
+    @JsonIgnore
+    public int getNumberOfDiscs() {
+        return tracks.getMaxDiscNumber();
+    }
+
+    @JsonIgnore
+    public String getFullAlbumTrackDescription(String id) {
+        TrackItem t = tracks.getMatchingTrack(id);
+
+        if (t != null) {
+            StringBuilder desc = new StringBuilder();
+            desc.append("This is track ");
+            desc.append(t.getNumber());
+            desc.append(" ");
+
+            if (getNumberOfDiscs() > 1) {
+                desc.append("on disc ");
+                desc.append(t.getDiscNumber());
+                desc.append(" ");
+            }
+
+            return desc.toString();
+        } else {
+            return "This track is ";
+        }
+    }
+
     public class TrackPage implements Serializable {
         private int total;
+        private TrackItem[] items;
 
         public int getTotal() {
             return total;
@@ -181,6 +216,36 @@ public class Album implements Serializable {
 
         public void setTotal(int total) {
             this.total = total;
+        }
+
+        public TrackItem[] getItems() {
+            return items;
+        }
+
+        public void setItems(TrackItem[] items) {
+            this.items = items;
+        }
+
+        @JsonIgnore
+        public int getMaxDiscNumber() {
+            int max = 0;
+            for (TrackItem t : items) {
+                if (t.getDiscNumber() > max) {
+                    max = t.getDiscNumber();
+                }
+            }
+
+            return max;
+        }
+
+        @JsonIgnore
+        public TrackItem getMatchingTrack(String id) {
+            for (TrackItem t : items) {
+                if (id.equals(t.getId())) {
+                    return t;
+                }
+            }
+            return null;
         }
     }
 }

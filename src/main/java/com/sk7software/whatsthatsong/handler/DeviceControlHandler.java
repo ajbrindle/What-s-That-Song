@@ -15,6 +15,7 @@ import com.sk7software.whatsthatsong.model.AvailableDevices;
 import com.sk7software.whatsthatsong.model.Device;
 import com.sk7software.whatsthatsong.model.Track;
 import com.sk7software.whatsthatsong.network.DevicesAPIService;
+import com.sk7software.whatsthatsong.network.RecommendationsAPIService;
 import com.sk7software.whatsthatsong.network.SpotifyWebUpdateAPIService;
 import com.sk7software.whatsthatsong.network.SpotifyWebAPIService;
 import com.sk7software.whatsthatsong.util.PlayerAction;
@@ -25,9 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.amazon.ask.request.Predicates.intentName;
 import static com.sk7software.whatsthatsong.util.SpeechletUtils.*;
@@ -50,6 +49,7 @@ public class DeviceControlHandler implements RequestHandler {
                 input.matches(intentName("PlayerControlPauseIntent")) ||
                 input.matches(intentName("PlayerControlResumeIntent")) ||
                 input.matches(intentName("AlbumPlayIntent")) ||
+                input.matches(intentName("RecommendedTracksPlayIntent")) ||
                 input.matches(intentName("OriginalAlbumPlayIntent"));
     }
 
@@ -84,6 +84,8 @@ public class DeviceControlHandler implements RequestHandler {
             return playerControl(PlayerAction.RESUME, null, handlerInput);
         } else if (handlerInput.matches(intentName("AlbumPlayIntent"))) {
             return fetchTrackAndPlayerControl(PlayerAction.PLAY_ALBUM, handlerInput);
+        } else if (handlerInput.matches(intentName("RecommendedTracksPlayIntent"))) {
+            return fetchTrackAndPlayerControl(PlayerAction.PLAY_RECOMMENDED_TRACKS, handlerInput);
         } else if (handlerInput.matches(intentName("OriginalAlbumPlayIntent"))) {
             return fetchTrackAndPlayerControl(PlayerAction.PLAY_ORIGINAL_ALBUM, handlerInput);
         } else {
@@ -323,7 +325,7 @@ public class DeviceControlHandler implements RequestHandler {
                     speechText.append("Resumed");
                     break;
                 case PLAY_ALBUM:
-                    spotifyURL = SpotifyWebUpdateAPIService.PLAY_ALBUM_URL;
+                    spotifyURL = SpotifyWebUpdateAPIService.PLAY_URL;
                     method = "PUT";
                     postParams.put("context_uri", track.getAlbumUri());
                     position.put("position", 0);
@@ -332,7 +334,7 @@ public class DeviceControlHandler implements RequestHandler {
                     speechText.append(track.getAlbumName());
                     break;
                 case PLAY_ORIGINAL_ALBUM:
-                    spotifyURL = SpotifyWebUpdateAPIService.PLAY_ORIGINAL_ALBUM_URL;
+                    spotifyURL = SpotifyWebUpdateAPIService.PLAY_URL;
                     if (track.hasOriginalAlbum()) {
                         method = "PUT";
                         postParams.put("context_uri", track.getOriginalAlbumUri());
@@ -344,6 +346,27 @@ public class DeviceControlHandler implements RequestHandler {
                         speechText.append("Please ask if this track has an original album first");
                         return SpeechletUtils.buildStandardAskResponse(speechText.toString(), false).build();
                     }
+                    break;
+                case PLAY_RECOMMENDED_TRACKS:
+                    List<Track> tracks = fetchRecommendedTracks(track, handlerInput);
+                    if (tracks.isEmpty()) {
+                        speechText.append("Sorry, I was not able to find any similar tracks to play.");
+                        return SpeechletUtils.buildStandardAskResponse(speechText.toString(), false).build();
+                    }
+
+                    spotifyURL = SpotifyWebUpdateAPIService.PLAY_URL;
+                    method = "PUT";
+
+                    List<String> trackIds = new ArrayList<>();
+                    for (Track t : tracks) {
+                        trackIds.add(t.getUri());
+                    }
+                    postParams.put("uris", trackIds);
+                    position.put("position", 0);
+                    postParams.put("offset", position);
+                    speechText.append("Playing ");
+                    speechText.append(tracks.size());
+                    speechText.append(" recommended tracks");
                     break;
                 default:
                     // Never happens as actions are controlled by speechlet
@@ -393,5 +416,36 @@ public class DeviceControlHandler implements RequestHandler {
             log.error("Unable to deserialise devices: " + ie.getMessage());
         }
         return null;
+    }
+
+    private List<Track> fetchRecommendedTracks(Track track, HandlerInput handlerInput) {
+        StringBuilder url = new StringBuilder(SpotifyWebAPIService.RECOMMENDATIONS_URL);
+        List<Track> tracks = new ArrayList<>();
+        List<String> artistIds = track.getArtistIds();
+        String trackId = track.getId();
+
+        url.append("?seed_tracks=");
+        url.append(trackId);
+        url.append("&seed_artists=");
+
+        boolean first = true;
+
+        for (String s : artistIds) {
+            if (!first) {
+                url.append(",");
+            }
+            url.append(s);
+            first = false;
+        }
+
+        try {
+            SpotifyWebAPIService recService = new RecommendationsAPIService();
+            tracks = ((RecommendationsAPIService) recService).fetchItem(url.toString(),
+                    new SpotifyAuthentication(handlerInput));
+        } catch (Exception e) {
+            log.error("Can't find similar tracks: " + e.getMessage());
+        }
+
+        return tracks;
     }
 }

@@ -7,5 +7,6 @@ public enum PlayerAction {
     RESUME,
     PLAY_ALBUM,
     PLAY_ORIGINAL_ALBUM,
-    PREVIOUS
+    PREVIOUS,
+    PLAY_RECOMMENDED_TRACKS
 }

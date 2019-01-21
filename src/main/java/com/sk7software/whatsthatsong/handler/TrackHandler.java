@@ -67,7 +67,8 @@ public class TrackHandler {
                 speechText.append("This is the original album track.");
             } else {
                 Album album = fetchAlbum(originalTrack.getAlbumId(), handlerInput);
-                speechText.append("The track is from the original album ");
+                speechText.append(album.getFullAlbumTrackDescription(originalTrack.getId()));
+                speechText.append(" from the original album ");
                 speechText.append(originalTrack.getFullAlbumDescription());
                 speechText.append(". ");
                 speechText.append(album.buildAlbumInfo());
@@ -122,7 +123,8 @@ public class TrackHandler {
             if (track != null) {
                 // Fetch the album
                 Album album = fetchAlbum(track.getAlbumId(), handlerInput);
-                speechText.append("This track is from the album ");
+                speechText.append(album.getFullAlbumTrackDescription(track.getId()));
+                speechText.append("from the album ");
                 speechText.append(album.getFullAlbumDescription());
                 speechText.append(". ");
                 speechText.append(album.buildAlbumInfo());

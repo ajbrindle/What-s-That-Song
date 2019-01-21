@@ -4,15 +4,13 @@ import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.model.interfaces.display.*;
 import com.amazon.ask.response.ResponseBuilder;
 import com.amazonaws.util.StringUtils;
-import com.sk7software.whatsthatsong.model.AvailableDevices;
-import com.sk7software.whatsthatsong.model.Device;
-import com.sk7software.whatsthatsong.model.Lyrics;
-import com.sk7software.whatsthatsong.model.Track;
+import com.sk7software.whatsthatsong.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 
 public class SpeechletUtils {
@@ -39,9 +37,14 @@ public class SpeechletUtils {
                 log.debug("Device has display");
                 String artworkUrl = track.getArtworkUrl();
                 if (!StringUtils.isNullOrEmpty(artworkUrl)) {
-                    responseBuilder.addRenderTemplateDirective(createDisplayTemplate(artworkUrl,
-                            "<b>" + track.getName() + "</b>",
-                            "<font size=\"2\">" + track.getArtistName() + "</font>"));
+                    responseBuilder
+                            .addRenderTemplateDirective(
+                                    createDisplayTemplate(
+                                            track.getAlbum().getCovers(),
+                                            "<b>" +
+                                                    StringEscapeUtils.escapeHtml4(track.getName()) + "</b>",
+                                            "<font size=\"2\">" +
+                                                    StringEscapeUtils.escapeHtml4(track.getArtistName()) + "</font>"));
                 }
             }
         }
@@ -53,10 +56,21 @@ public class SpeechletUtils {
                 log.debug("Device has display");
                 String artworkUrl = track.getArtworkUrl();
                 if (!StringUtils.isNullOrEmpty(artworkUrl)) {
-                    responseBuilder.addRenderTemplateDirective(createDisplayTemplate(artworkUrl,
-                            "<b>" + track.getName() + "</b>",
-                            "<font size=\"2\">" + track.getArtistName() + "<br /><br />" +
-                                        "<i>" + track.getAlbumName() + "</i></font>"));
+                    try {
+                        responseBuilder
+                                .addRenderTemplateDirective(
+                                        createDisplayTemplate(
+                                                track.getAlbum().getCovers(),
+                                                "<b>" +
+                                                        StringEscapeUtils.escapeHtml4(track.getName()) + "</b>",
+                                                "<font size=\"2\">" +
+                                                        StringEscapeUtils.escapeHtml4(track.getArtistName()) +
+                                                        "<br /><br /><i>" +
+                                                        StringEscapeUtils.escapeHtml4(track.getAlbumName()) +
+                                                        "</i></font>"));
+                    } catch (Throwable e) {
+                        log.error("Error rendering display: " + e.getMessage());
+                    }
                 }
             }
         }
@@ -67,10 +81,16 @@ public class SpeechletUtils {
             if (new DeviceCapability(handlerInput).hasDisplay()) {
                 log.debug("Device has display");
                 String artworkUrl = track.getArtworkUrl();
+                log.debug(lyrics.getFormattedLyrics());
                 if (!StringUtils.isNullOrEmpty(artworkUrl) && lyrics != null) {
-                    responseBuilder.addRenderTemplateDirective(createDisplayTemplate(artworkUrl,
-                            "<font size=\"2\">" + lyrics.getFormattedLyrics() + "</font>",
-                            "<font size=\"1\"><i>" + lyrics.getCopyright() + "</i></font>"));
+                    responseBuilder
+                            .addRenderTemplateDirective(
+                                    createDisplayTemplate(
+                                            track.getAlbum().getCovers(),
+                                            "<font size=\"2\">" +
+                                                    lyrics.getFormattedLyrics() + "</font>",
+                                            "<font size=\"1\"><i>" +
+                                                    lyrics.getCopyright() + "</i></font>"));
                 }
             }
         }
@@ -87,11 +107,15 @@ public class SpeechletUtils {
         }
     }
 
-    private static Template createDisplayTemplate(String imageUrl, String primaryText, String secondaryText) {
+    private static Template createDisplayTemplate(AlbumArt[] covers, String primaryText, String secondaryText) {
         List<ImageInstance> artwork = new ArrayList<>();
-        artwork.add(ImageInstance.builder()
-                .withUrl(imageUrl)
-                .build());
+        for (AlbumArt aa : covers) {
+            artwork.add(ImageInstance.builder()
+                    .withUrl(aa.getUrl())
+                    .withHeightPixels(aa.getHeight())
+                    .withWidthPixels(aa.getWidth())
+                    .build());
+        }
         return BodyTemplate2.builder()
                 .withTextContent(TextContent.builder()
                         .withPrimaryText(RichText.builder()
@@ -115,10 +139,12 @@ public class SpeechletUtils {
                     .withToken(String.valueOf(d.getId()))
                     .withTextContent(TextContent.builder()
                             .withPrimaryText(RichText.builder()
-                                    .withText("<font size=\"2\">" + d.getName() + "</font>")
+                                    .withText("<font size=\"2\">" +
+                                            StringEscapeUtils.escapeHtml4(d.getName()) + "</font>")
                                     .build())
                             .withSecondaryText(RichText.builder()
-                                    .withText("<font size=\"1\">" + d.getType() + "</font>")
+                                    .withText("<font size=\"1\">" +
+                                            StringEscapeUtils.escapeHtml4(d.getType()) + "</font>")
                                     .build())
                             .build())
                     .build();

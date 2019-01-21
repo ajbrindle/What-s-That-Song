@@ -29,8 +29,7 @@ public class SpotifyWebUpdateAPIService {
     public static final String RESTART_URL = "https://api.spotify.com/v1/me/player/seek?position_ms=0";
     public static final String PAUSE_URL = "https://api.spotify.com/v1/me/player/pause";
     public static final String RESUME_URL = "https://api.spotify.com/v1/me/player/play";
-    public static final String PLAY_ALBUM_URL = "https://api.spotify.com/v1/me/player/play";
-    public static final String PLAY_ORIGINAL_ALBUM_URL = "https://api.spotify.com/v1/me/player/play";
+    public static final String PLAY_URL = "https://api.spotify.com/v1/me/player/play";
     public static final String LIBRARY_ADD_URL ="https://api.spotify.com/v1/me/albums";
 
 

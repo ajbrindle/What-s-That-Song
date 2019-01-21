@@ -14,6 +14,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -99,12 +101,39 @@ public class Track implements Serializable {
     }
 
     @JsonIgnore
+    public int getNumber() { return item.getNumber(); }
+
+    @JsonIgnore
     public String getArtistName() {
-        if (item.getArtists().length > 0) {
+        int numArtists = item.getArtists().length;
+        if (numArtists == 1) {
             return item.getArtists()[0].getName();
+        } else if (numArtists > 1) {
+            int lastItem = numArtists - 1;
+            StringBuilder artistsStr = new StringBuilder();
+            for (int i=0; i<numArtists; i++) {
+                if (i > 0) {
+                    if (i == lastItem) {
+                        artistsStr.append(" and ");
+                    } else {
+                        artistsStr.append(", ");
+                    }
+                }
+                artistsStr.append(item.getArtists()[i].getName());
+            }
+            return artistsStr.toString();
         } else {
             return "Unknown artist";
         }
+    }
+
+    @JsonIgnore
+    public List<String> getArtistIds() {
+        List<String> ids = new ArrayList<>();
+        for (Artist a : this.getItem().getArtists()) {
+            ids.add(a.getId());
+        }
+        return ids;
     }
 
     @JsonIgnore
@@ -124,6 +153,9 @@ public class Track implements Serializable {
     public String getAlbumId() {
         return item.getAlbum().getId();
     }
+
+    @JsonIgnore
+    public String getUri() { return item.getUri(); }
 
     public String getOriginalAlbumUri() {
         return originalAlbumUri;
